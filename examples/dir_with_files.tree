@@ -1,0 +1,4 @@
+(dir "root"
+  (dir "tests"
+    (@perms 0666)
+    (file "BUILD.gn")))
