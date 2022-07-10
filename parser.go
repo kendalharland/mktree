@@ -1,4 +1,4 @@
-package main
+package mktree
 
 import (
 	"bufio"
@@ -33,16 +33,17 @@ const (
 	EofTokenKind        TokenKind = "EOF"
 )
 
-var keywords = map[string]*Token{
-	"dir":  &Token{DirTokenKind, "dir"},
-	"file": &Token{FileTokenKind, "file"},
+var keywords = map[string]TokenKind{
+	"dir":  DirTokenKind,
+	"file": FileTokenKind,
 }
 
-var EOF = &Token{EofTokenKind, ""}
+var EOF = &Token{EofTokenKind, "", -1}
 
 type Token struct {
 	Kind  TokenKind
 	Value string
+	Pos   int
 }
 
 type Config struct {
@@ -78,9 +79,14 @@ type Parser struct {
 	pos         int
 	lineEndings []int
 	src         []byte
+	buf         strings.Builder
 }
 
-// TODO: makeToken
+func Parse(r io.Reader) (*Config, error) {
+	p := &Parser{}
+	return p.Parse(r)
+}
+
 func (p *Parser) Parse(r io.Reader) (*Config, error) {
 	src, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -88,7 +94,7 @@ func (p *Parser) Parse(r io.Reader) (*Config, error) {
 	}
 	p.src = src
 	p.r = bufio.NewReader(bytes.NewReader(p.src))
-	p.t = EOF
+	makeToken(p, EofTokenKind)
 	p.lineEndings = []int{0}
 	c := parseConfig(p)
 	return c, p.err
@@ -109,7 +115,7 @@ func (p *Parser) Parse(r io.Reader) (*Config, error) {
 func parseConfig(p *Parser) *Config {
 	c := &Config{}
 	nextToken(p)
-	for peekToken(p).Kind != EofTokenKind {
+	for !match(p, EofTokenKind) {
 		c.SExprs = append(c.SExprs, parseSExpr(p))
 		ignoreNewlines(p)
 	}
@@ -124,11 +130,9 @@ func parseSExpr(p *Parser) *SExpr {
 	ignoreNewlines(p)
 
 	var args []*Arg
-	t := peekToken(p)
-	for t != EOF && t.Kind != RParenTokenKind {
+	for !(match(p, EofTokenKind) || match(p, RParenTokenKind)) {
 		args = append(args, parseArg(p))
 		ignoreNewlines(p)
-		t = peekToken(p)
 	}
 
 	consume(p, RParenTokenKind)
@@ -136,7 +140,7 @@ func parseSExpr(p *Parser) *SExpr {
 }
 
 func parseArg(p *Parser) *Arg {
-	if peekToken(p).Kind == LParenTokenKind {
+	if match(p, LParenTokenKind) {
 		e := parseSExpr(p)
 		return &Arg{SExpr: e}
 	}
@@ -151,19 +155,19 @@ func parseLiteral(p *Parser) *Literal {
 		nextToken(p)
 		return &Literal{Token: t}
 	}
-	unexpectedTokenErr(p, "parseLiteral", t)
+	unexpectedTokenErr(p, "parseLiteral")
 	return nil
 }
 
 func consume(p *Parser, k TokenKind) {
-	if peekToken(p).Kind != k {
-		unexpectedTokenErr(p, "consume", p.t)
+	if !match(p, k) {
+		unexpectedTokenErr(p, "consume")
 	}
 	nextToken(p)
 }
 
 func ignoreNewlines(p *Parser) {
-	for peekToken(p).Kind == NewlineTokenKind {
+	for match(p, NewlineTokenKind) {
 		nextToken(p)
 	}
 }
@@ -176,7 +180,7 @@ func (e ParseError) Error() string {
 	return e.err
 }
 
-func unexpectedTokenErr(p *Parser, caller string, t *Token) {
+func unexpectedTokenErr(p *Parser, caller string) {
 	around := surroundingText(p)
 	arrow := strings.Repeat("-", p.col) + "^"
 	err := fmt.Errorf(`
@@ -184,9 +188,18 @@ func unexpectedTokenErr(p *Parser, caller string, t *Token) {
 %s
 %s
 %s
-`, caller, t.Kind, t.Value, p.line+1, p.col+1, around, arrow, string(debug.Stack()))
+`, caller, p.t.Kind, p.t.Value, p.line+1, p.col+1, around, arrow, string(debug.Stack()))
 
 	parseErr(p, err)
+}
+
+func makeToken(p *Parser, k TokenKind) {
+	p.t = &Token{
+		Kind:  k,
+		Value: p.buf.String(),
+		Pos:   p.pos - p.buf.Len(),
+	}
+	p.buf.Reset()
 }
 
 func parseErr(p *Parser, e error) {
@@ -215,115 +228,105 @@ func peekToken(p *Parser) *Token {
 	return p.t
 }
 
+func match(p *Parser, k TokenKind) bool {
+	return peekToken(p).Kind == k
+}
+
 func nextToken(p *Parser) {
 	for {
 		if isEOF(p.r) {
-			p.t = EOF
+			makeToken(p, EofTokenKind)
 			return
 		}
 		switch peekChar(p.r) {
 		case '(':
 			nextChar(p)
-			p.t = &Token{LParenTokenKind, "("}
+			makeToken(p, LParenTokenKind)
 			return
 		case ')':
 			nextChar(p)
-			p.t = &Token{RParenTokenKind, ")"}
+			makeToken(p, RParenTokenKind)
 			return
 		case '@':
-			p.t = readAttribute(p)
+			readAttribute(p)
 			return
 		case '\n':
 			nextChar(p)
-			p.t = &Token{NewlineTokenKind, ""}
+			makeToken(p, NewlineTokenKind)
 			return
 		case '"':
-			p.t = readString(p)
+			readString(p)
 			return
 		case ' ':
-			nextChar(p)
+			skipChar(p)
 			continue
 		}
 		if isDigit(peekChar(p.r)) {
-			p.t = readNumber(p)
+			readNumber(p)
 			return
 		}
-		p.t = readKeyword(p)
+		readKeyword(p)
 		return
 	}
 }
 
-func readAttribute(p *Parser) *Token {
-	value := string(nextChar(p))
+func readAttribute(p *Parser) {
+	nextChar(p) // @
 	for !isEOF(p.r) {
 		c := peekChar(p.r)
 		if isWhiteSpace(c) || c == '\n' {
 			break
 		}
-		value += string(nextChar(p))
+		nextChar(p)
 	}
-	return &Token{AttributeTokenKind, value}
+	makeToken(p, AttributeTokenKind)
 }
 
 // TODO: Handle escaped quotes.
-func readString(p *Parser) *Token {
-	var b strings.Builder
-
-	nextChar(p)
+func readString(p *Parser) {
+	skipChar(p) // "
 	for !(isEOF(p.r) || peekChar(p.r) == '"') {
-		b.WriteByte(nextChar(p))
+		nextChar(p)
 	}
-	nextChar(p)
-
-	value := b.String()
-	if t, ok := keywords[value]; ok {
-		return t
-	}
-
-	return &Token{StringTokenKind, value}
+	makeToken(p, StringTokenKind)
+	skipChar(p) // "
 }
 
-func readNumber(p *Parser) *Token {
-	var b strings.Builder
+func readNumber(p *Parser) {
 	for !isEOF(p.r) && isDigit(peekChar(p.r)) {
-		b.WriteByte(nextChar(p))
+		nextChar(p)
 	}
-
-	return &Token{NumberTokenKind, b.String()}
+	makeToken(p, NumberTokenKind)
 }
 
-func readKeyword(p *Parser) *Token {
-	var b strings.Builder
-
-	b.WriteByte(nextChar(p))
+func readKeyword(p *Parser) {
+	nextChar(p)
 	for !(isEOF(p.r) || isWhiteSpace(peekChar(p.r))) {
-		b.WriteByte(nextChar(p))
+		nextChar(p)
 	}
 
-	value := b.String()
-	if t, ok := keywords[value]; ok {
-		return t
+	if kind, ok := keywords[buffer(p)]; ok {
+		makeToken(p, kind)
+		return
 	}
 
-	panic(fmt.Sprintf("invalid keyword %q", value))
-	// if c == '/' || c == '_' || c == '-' || c == '\n' || isAlpha(c) {
-	// 	value += string(nextChar(p))
-	// 	continue
-	// }
+	unexpectedTokenErr(p, "invalid keyword "+buffer(p))
 }
 
-func isEOF(r *bufio.Reader) bool {
-	_, err := r.Peek(1)
-	return errors.Is(err, io.EOF)
+func buffer(p *Parser) string {
+	return p.buf.String()
 }
 
-func nextChar(p *Parser) byte {
+func nextChar(p *Parser) {
+	p.buf.WriteByte(skipChar(p))
+}
+
+func skipChar(p *Parser) byte {
 	if isEOF(p.r) {
 		panic("nextChar: EOF")
 	}
 
 	b, _ := p.r.ReadByte()
-
 	p.pos += 1
 	p.col += 1
 	if b == '\n' {
@@ -343,18 +346,19 @@ func peekChar(r *bufio.Reader) byte {
 	return b[0]
 }
 
+func isEOF(r *bufio.Reader) bool {
+	_, err := r.Peek(1)
+	return errors.Is(err, io.EOF)
+}
+
+func isDigit(b byte) bool {
+	return '0' <= b && b <= '9'
+}
+
 func isWhiteSpace(b byte) bool {
 	switch b {
 	case ' ', '\t', '\r':
 		return true
 	}
 	return false
-}
-
-// func isAlpha(b byte) bool {
-// 	return 'a' <= b && b <= 'z' || 'A' <= b && b <= 'Z' || '1' <= b && b <= '9'
-// }
-
-func isDigit(b byte) bool {
-	return '0' <= b && b <= '9'
 }

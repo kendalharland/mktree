@@ -1,0 +1,6 @@
+
+(dir "a" 
+    (@perms 066))
+(file "b"
+    (@template "path/to/template.tmpl")
+    (@perms 0755))

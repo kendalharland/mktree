@@ -1,4 +1,7 @@
-(dir "root"
-  (dir "tests"
-    (@perms 0666)
-    (file "BUILD.gn")))
+(dir "tests"
+  (file "a.txt"
+    (@template "path/to/template.tmpl")
+    (@perms 0755)
+  (file "b.txt"
+    (@perms 0755)
+    (@contents "this is file b.txt")))

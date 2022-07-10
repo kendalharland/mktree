@@ -1,0 +1,7 @@
+(dir "%(library_name)"
+  (file "BUILD.gn"
+    (@template "%(source_root)/sdk/cts/templates/test/BUILD.gn.tmpl")
+    (@perms %(perms)))
+  (file "OWNERS"
+    (@perms %(perms))
+    (@contents "kendal")))
