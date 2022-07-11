@@ -8,7 +8,7 @@ Create a file `layout.tree` with these contents:
 ```
 (dir "%(name)"
     (@perms 0666)
-    (file "%(name).txt")
+    (file "%(name).txt"
         (@perms 0755)))
 ```
 
