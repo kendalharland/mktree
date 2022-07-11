@@ -24,8 +24,10 @@ func usage() {
 
 func execute(ctx context.Context) error {
 	var root string
+	var debug bool
 	args := RepeatedFlag(func() flag.Value { return &keyValueFlag{} })
 
+	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")
 	flag.StringVar(&root, "root", "", "Where to create the files and directories (defaults to cwd")
 	flag.Var(args, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
 	flag.Parse()
@@ -64,6 +66,10 @@ func execute(ctx context.Context) error {
 		return err
 	}
 
-	mktree.DebugDir(d, os.Stdout)
-	return nil
+	if debug {
+		mktree.DebugDir(d, os.Stdout)
+		return nil
+	}
+
+	return mktree.GenerateDir(d)
 }

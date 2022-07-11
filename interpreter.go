@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	defaultDirMode  = os.FileMode(0666)
+	defaultDirMode  = os.FileMode(0777)
 	defaultFileMode = os.FileMode(0755)
 )
 
@@ -51,22 +51,24 @@ func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 		return nil, err
 	}
 
-	root, err := evalConfig(config)
-	if err != nil {
+	root := &Dir{
+		Name:  i.Root,
+		Perms: defaultDirMode | os.ModeDir,
+	}
+	if err := evalConfig(config, root); err != nil {
 		return nil, err
 	}
 
 	return root, nil
 }
 
-func evalConfig(c *Config) (*Dir, error) {
-	var root Dir
+func evalConfig(c *Config, root *Dir) error {
 	for _, e := range c.SExprs {
-		if err := evalDirChild(&root, e); err != nil {
-			return nil, err
+		if err := evalDirChild(root, e); err != nil {
+			return err
 		}
 	}
-	return &root, nil
+	return nil
 }
 
 // TODO: Merge with file version and check attr in setters.

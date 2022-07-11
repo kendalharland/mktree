@@ -1,6 +1,8 @@
 package mktree
 
-import "os"
+import (
+	"os"
+)
 
 type File struct {
 	Name             string

@@ -4,4 +4,4 @@
     (@perms %(perms)))
   (file "OWNERS"
     (@perms %(perms))
-    (@contents "kendal")))
+    (@contents "owner@example.com")))
