@@ -1,7 +1,6 @@
 package mktree
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,9 +9,21 @@ import (
 )
 
 const (
-	defaultDirMode  = os.FileMode(0777)
-	defaultFileMode = os.FileMode(0755)
+	defaultDirMode  = os.FileMode(0777) | os.ModeDir
+	defaultFileMode = os.FileMode(0666)
 )
+
+type InterpretError struct {
+	message string
+}
+
+func (e InterpretError) Error() string {
+	return e.String()
+}
+
+func (e InterpretError) String() string {
+	return "interpret error: " + e.message
+}
 
 func Interpret(r io.Reader) (*Dir, error) {
 	i := &Interpreter{}
@@ -28,14 +39,14 @@ func (i *Interpreter) init() error {
 	if i.Vars == nil {
 		i.Vars = make(map[string]string)
 	}
-	if i.Root == "" {
-		root, err := os.Getwd()
-		if err != nil {
-			return errors.New("unable to choose the root directory. Please specify one when creating the interpreter")
-		}
-		i.Root = root
-	}
 	return nil
+}
+
+func defaultRootDir(name string) *Dir {
+	return &Dir{
+		Name:  name,
+		Perms: defaultDirMode,
+	}
 }
 
 func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
@@ -51,10 +62,7 @@ func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 		return nil, err
 	}
 
-	root := &Dir{
-		Name:  i.Root,
-		Perms: defaultDirMode | os.ModeDir,
-	}
+	root := defaultRootDir(i.Root)
 	if err := evalConfig(config, root); err != nil {
 		return nil, err
 	}
@@ -71,7 +79,6 @@ func evalConfig(c *Config, root *Dir) error {
 	return nil
 }
 
-// TODO: Merge with file version and check attr in setters.
 func evalDirChild(parent *Dir, e *SExpr) (err error) {
 	switch e.Literal.Token.Kind {
 	case AttributeTokenKind:
@@ -101,7 +108,7 @@ func evalDir(parent *Dir, e *SExpr) error {
 		return interpretError("expected a directory name")
 	}
 
-	name, err := evalString(e.Args[0].Literal)
+	name, err := evalString(e.Args[0])
 	if err != nil {
 		return err
 	}
@@ -113,10 +120,10 @@ func evalDir(parent *Dir, e *SExpr) error {
 		}
 	}
 	if d.Perms == os.FileMode(0) {
-		d.setPerms(defaultDirMode)
+		d.Perms = defaultDirMode
 	}
 
-	parent.Dirs = append(parent.Dirs, d)
+	parent.addDir(d)
 	return nil
 }
 
@@ -131,21 +138,20 @@ func evalAttr(owner interface{}, e *SExpr) error {
 func setAttr(owner interface{}, name string, args []*Arg) error {
 	switch t := owner.(type) {
 	case *File:
-		t.setAttribute(name, args)
+		return t.setAttribute(name, args)
 	case *Dir:
-		t.setAttribute(name, args)
+		return t.setAttribute(name, args)
 	default:
 		panic(fmt.Errorf("setAttr(%q) called on owner of type `%T` which does not have attributes", name, t))
 	}
-	return nil
 }
 
 func evalFile(parent *Dir, e *SExpr) error {
 	if len(e.Args) < 1 {
-		return interpretError("expected a directory name")
+		return interpretError("expected a filename")
 	}
 
-	name, err := evalString(e.Args[0].Literal)
+	name, err := evalString(e.Args[0])
 	if err != nil {
 		return err
 	}
@@ -160,7 +166,7 @@ func evalFile(parent *Dir, e *SExpr) error {
 		}
 	}
 
-	parent.Files = append(parent.Files, f)
+	parent.addFile(f)
 	return nil
 }
 
@@ -172,9 +178,10 @@ func evalAttrName(l *Literal) (string, error) {
 	return l.Token.Value[1:], nil
 }
 
-func evalString(l *Literal) (string, error) {
-	if l.Token.Kind != StringTokenKind {
-		return "", interpretError("%q is not a string", l.Token.Value)
+func evalString(a *Arg) (string, error) {
+	l := a.Literal
+	if l == nil || l.Token.Kind != StringTokenKind {
+		return "", interpretError("%v is not a string", a.Token)
 	}
 	return l.Token.Value, nil
 }
@@ -190,6 +197,22 @@ func evalNumber(l *Literal) (float64, error) {
 	return n, nil
 }
 
+func evalFileMode(a *Arg) (os.FileMode, error) {
+	l := a.Literal
+
+	if l.Token.Kind != NumberTokenKind {
+		return 0, interpretError("%q is not a number", l.Token.Value)
+	}
+	n, err := strconv.ParseUint(l.Token.Value, 8, 32)
+	if err != nil {
+		return 0, interpretError("%q is not a file mode octal", l.Token.Value)
+	}
+
+	return os.FileMode(uint32(n)), nil
+}
+
 func interpretError(format string, args ...interface{}) error {
-	return fmt.Errorf("interpret error: "+format, args...)
+	return InterpretError{
+		message: fmt.Sprintf(format, args...),
+	}
 }

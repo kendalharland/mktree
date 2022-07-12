@@ -24,16 +24,16 @@ func (f *File) setAttribute(name string, args []*Arg) error {
 }
 
 func (f *File) setPerms(args []*Arg) error {
-	value, err := evalNumber(args[0].Literal)
+	mode, err := evalFileMode(args[0])
 	if err != nil {
 		return err
 	}
-	f.Perms = os.FileMode(value)
+	f.Perms = mode
 	return nil
 }
 
 func (f *File) setTemplate(args []*Arg) error {
-	filename, err := evalString(args[0].Literal)
+	filename, err := evalString(args[0])
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (f *File) setTemplate(args []*Arg) error {
 }
 
 func (f *File) setContents(args []*Arg) error {
-	contents, err := evalString(args[0].Literal)
+	contents, err := evalString(args[0])
 	if err != nil {
 		return err
 	}

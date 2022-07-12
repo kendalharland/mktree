@@ -1,0 +1,8 @@
+- Normalize file and dirnames and make them relative to root_dir.
+- Verify that @contents and @template are mutually exclusive (error).
+- Trim space around vars during preprocessing.
+- Convert -root to a -root_dir variable.
+- Support for links.
+- Docs logo.
+- Keep a changelog
+- Autogenerate the release notes from the changelog.

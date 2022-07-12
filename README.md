@@ -1,5 +1,5 @@
 # mktree
-An s-expression-based scripting language for generating boilerplate directories and files
+An s-expression based configuration language for generating boilerplate directories and files.
 
 # Basic Usage
 

@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/kendalharland/mktree"
 )
+
+const version = "0.0.0"
 
 func main() {
 	if err := execute(context.TODO()); err != nil {
@@ -22,18 +25,36 @@ func usage() {
 
 }
 
+func printVersion() {
+	e, _ := os.Executable()
+	name := filepath.Base(e)
+	fmt.Fprintf(os.Stdout, "%s %s\n", name, version)
+}
+
 func execute(ctx context.Context) error {
+	mktree.Docs(os.Stdout)
+	return nil
+
 	var root string
 	var debug bool
-	args := RepeatedFlag(func() flag.Value { return &keyValueFlag{} })
+	var version bool
+	args := &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
 
 	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")
 	flag.StringVar(&root, "root", "", "Where to create the files and directories (defaults to cwd")
+	flag.BoolVar(&version, "version", false, "Print the version and exit")
+
 	flag.Var(args, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
 	flag.Parse()
 
+	if version {
+		printVersion()
+		return nil
+	}
+
 	if flag.NArg() == 0 {
 		usage()
+		return nil
 	}
 
 	if root == "" {

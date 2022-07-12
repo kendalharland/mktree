@@ -60,6 +60,11 @@ type Literal struct {
 }
 
 type Arg struct {
+	// The first token for this Arg.
+	//
+	// This matches the token set on either SExpr or Literal.
+	Token *Token
+
 	// Only one of these is set.
 	SExpr   *SExpr
 	Literal *Literal
@@ -100,18 +105,6 @@ func (p *Parser) Parse(r io.Reader) (*Config, error) {
 	return c, p.err
 }
 
-// config    = sexpr*
-// sexpr     = '(' literal arg* ')'
-// arg       = sexpr
-//           | literal
-// literal   = KEYWORD
-//           | ATTRIBUTE
-//           | STRING
-//			 | NUMBER
-// KEYWORD   = 'dir' | 'file'
-// ATTRIBUTE = '@' [a-zA-Z0-9_-]+
-// STRING    = '"'[^"]*'"'
-// NUMBER    = [0-9]+
 func parseConfig(p *Parser) *Config {
 	c := &Config{}
 	nextToken(p)
@@ -141,11 +134,12 @@ func parseSExpr(p *Parser) *SExpr {
 
 func parseArg(p *Parser) *Arg {
 	if match(p, LParenTokenKind) {
+		t := peekToken(p)
 		e := parseSExpr(p)
-		return &Arg{SExpr: e}
+		return &Arg{Token: t, SExpr: e}
 	}
 	l := parseLiteral(p)
-	return &Arg{Literal: l}
+	return &Arg{Token: l.Token, Literal: l}
 }
 
 func parseLiteral(p *Parser) *Literal {
@@ -200,11 +194,6 @@ func makeToken(p *Parser, k TokenKind) {
 		Pos:   p.pos - p.buf.Len(),
 	}
 	p.buf.Reset()
-}
-
-func parseErr(p *Parser, e error) {
-	p.err = e
-	fmt.Fprint(os.Stderr, e.Error())
 }
 
 func surroundingText(p *Parser) []byte {
@@ -301,7 +290,7 @@ func readNumber(p *Parser) {
 
 func readKeyword(p *Parser) {
 	nextChar(p)
-	for !(isEOF(p.r) || isWhiteSpace(peekChar(p.r))) {
+	for isAlpha(peekChar(p.r)) {
 		nextChar(p)
 	}
 
@@ -310,7 +299,7 @@ func readKeyword(p *Parser) {
 		return
 	}
 
-	unexpectedTokenErr(p, "invalid keyword "+buffer(p))
+	syntaxErr(p, "invalid keyword: %q", buffer(p))
 }
 
 func buffer(p *Parser) string {
@@ -351,6 +340,10 @@ func isEOF(r *bufio.Reader) bool {
 	return errors.Is(err, io.EOF)
 }
 
+func isAlpha(b byte) bool {
+	return 'a' <= b && b < 'z' || 'A' <= b && b <= 'Z' || isDigit(b)
+}
+
 func isDigit(b byte) bool {
 	return '0' <= b && b <= '9'
 }
@@ -361,4 +354,18 @@ func isWhiteSpace(b byte) bool {
 		return true
 	}
 	return false
+}
+
+//
+// Errors
+//
+
+func parseErr(p *Parser, e error) {
+	p.err = e
+	fmt.Fprint(os.Stderr, e.Error())
+}
+
+func syntaxErr(p *Parser, format string, args ...interface{}) {
+	p.err = fmt.Errorf("syntax error: "+format, args...)
+	fmt.Fprint(os.Stderr, p.err.Error())
 }

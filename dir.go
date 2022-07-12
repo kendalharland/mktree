@@ -12,15 +12,27 @@ type Dir struct {
 	Dirs  []*Dir
 }
 
+func (d *Dir) addDir(child *Dir) {
+	d.Dirs = append(d.Dirs, child)
+}
+
+func (d *Dir) addFile(child *File) {
+	d.Files = append(d.Files, child)
+}
+
 func (d *Dir) setAttribute(name string, args []*Arg) error {
-	value, err := evalNumber(args[0].Literal)
+	switch name {
+	case "perms":
+		return d.setPerms(args)
+	}
+	return interpretError("invalid file attribute %q", name)
+}
+
+func (d *Dir) setPerms(args []*Arg) error {
+	mode, err := evalFileMode(args[0])
 	if err != nil {
 		return err
 	}
-	d.setPerms(os.FileMode(value))
+	d.Perms = mode | fs.ModeDir
 	return nil
-}
-
-func (d *Dir) setPerms(m os.FileMode) {
-	d.Perms = m | fs.ModeDir
 }

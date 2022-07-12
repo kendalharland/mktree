@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on mktree</title>
+    <link>/posts/</link>
+    <description>Recent content in Posts on mktree</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 13 Jul 2022 16:06:53 +0000</lastBuildDate><atom:link href="/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Changelog</title>
+      <link>/posts/changelog/</link>
+      <pubDate>Wed, 13 Jul 2022 16:06:53 +0000</pubDate>
+      
+      <guid>/posts/changelog/</guid>
+      <description>Release Notes mktree-v0.0.0 // 2022-07-13 First release! </description>
+    </item>
+    
+    <item>
+      <title>Language</title>
+      <link>/posts/language/</link>
+      <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
+      
+      <guid>/posts/language/</guid>
+      <description>Grammar config = sexpr* sexpr = &#39;(&#39; literal arg* &#39;)&#39; arg = sexpr | literal literal = KEYWORD | ATTRIBUTE | STRING | NUMBER KEYWORD = &#39;dir&#39; | &#39;file&#39; | &#39;link&#39; ATTRIBUTE = &#39;@&#39; [a-zA-Z0-9_-]+ STRING = &#39;&amp;quot;&#39;[^&amp;quot;]*&#39;&amp;quot;&#39; NUMBER = [0-9]+ </description>
+    </item>
+    
+    <item>
+      <title>Reference</title>
+      <link>/posts/reference/</link>
+      <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
+      
+      <guid>/posts/reference/</guid>
+      <description>Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms link @soft @hard Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are insert using a simple string substitution. This is performed during a preprocessing step and means that variables are not part of the mktree grammar, which in turn means they are not interpreted.</description>
+    </item>
+    
+  </channel>
+</rss>

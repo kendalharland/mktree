@@ -7,10 +7,6 @@ import (
 	"strings"
 )
 
-func RepeatedFlag(value func() flag.Value) flag.Getter {
-	return &repeatedFlag{value: value}
-}
-
 type repeatedFlag struct {
 	value  func() flag.Value
 	values []flag.Value
