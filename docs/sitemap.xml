@@ -2,23 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>/posts/changelog/</loc>
+    <loc>/mktree/posts/changelog/</loc>
     <lastmod>2022-07-13T16:06:53+00:00</lastmod>
   </url><url>
-    <loc>/</loc>
+    <loc>/mktree/posts/</loc>
     <lastmod>2022-07-13T16:06:53+00:00</lastmod>
   </url><url>
-    <loc>/posts/</loc>
-    <lastmod>2022-07-13T16:06:53+00:00</lastmod>
-  </url><url>
-    <loc>/posts/language/</loc>
+    <loc>/mktree/</loc>
     <lastmod>2022-07-12T16:06:53+00:00</lastmod>
   </url><url>
-    <loc>/posts/reference/</loc>
+    <loc>/mktree/posts/language/</loc>
     <lastmod>2022-07-12T16:06:53+00:00</lastmod>
   </url><url>
-    <loc>/categories/</loc>
+    <loc>/mktree/posts/reference/</loc>
+    <lastmod>2022-07-12T16:06:53+00:00</lastmod>
   </url><url>
-    <loc>/tags/</loc>
+    <loc>/mktree/categories/</loc>
+  </url><url>
+    <loc>/mktree/tags/</loc>
   </url>
 </urlset>

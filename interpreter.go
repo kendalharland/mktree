@@ -186,17 +186,6 @@ func evalString(a *Arg) (string, error) {
 	return l.Token.Value, nil
 }
 
-func evalNumber(l *Literal) (float64, error) {
-	if l.Token.Kind != NumberTokenKind {
-		return 0, interpretError("%q is not a number", l.Token.Value)
-	}
-	n, err := strconv.ParseFloat(l.Token.Value, 64)
-	if err != nil {
-		return 0, interpretError("%q is not a number", l.Token.Value)
-	}
-	return n, nil
-}
-
 func evalFileMode(a *Arg) (os.FileMode, error) {
 	l := a.Literal
 

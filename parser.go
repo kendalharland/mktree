@@ -19,18 +19,18 @@ import (
 type TokenKind string
 
 const (
+	AttributeTokenKind TokenKind = "Attribute"
+	CommentTokenKind   TokenKind = "Comment"
+	NumberTokenKind    TokenKind = "Number"
+	StringTokenKind    TokenKind = "String"
 	LParenTokenKind    TokenKind = "LParen"
 	RParenTokenKind    TokenKind = "RParen"
-	AttributeTokenKind TokenKind = "Attribute"
-	StringTokenKind    TokenKind = "String"
-	NumberTokenKind    TokenKind = "Number"
+	NewlineTokenKind   TokenKind = "Newline"
+	EofTokenKind       TokenKind = "EOF"
+
 	// Keywords
 	DirTokenKind  TokenKind = "dir"
 	FileTokenKind TokenKind = "file"
-
-	NewlineTokenKind    TokenKind = "Newline"
-	WhiteSpaceTokenKind TokenKind = "WhiteSpace"
-	EofTokenKind        TokenKind = "EOF"
 )
 
 var keywords = map[string]TokenKind{
@@ -109,23 +109,24 @@ func parseConfig(p *Parser) *Config {
 	c := &Config{}
 	nextToken(p)
 	for !match(p, EofTokenKind) {
+		ignore(p, CommentTokenKind, NewlineTokenKind)
 		c.SExprs = append(c.SExprs, parseSExpr(p))
-		ignoreNewlines(p)
+		ignore(p, CommentTokenKind, NewlineTokenKind)
 	}
 	return c
 }
 
 func parseSExpr(p *Parser) *SExpr {
 	consume(p, LParenTokenKind)
-	ignoreNewlines(p)
+	ignore(p, NewlineTokenKind)
 
 	literal := parseLiteral(p)
-	ignoreNewlines(p)
+	ignore(p, NewlineTokenKind)
 
 	var args []*Arg
 	for !(match(p, EofTokenKind) || match(p, RParenTokenKind)) {
 		args = append(args, parseArg(p))
-		ignoreNewlines(p)
+		ignore(p, NewlineTokenKind)
 	}
 
 	consume(p, RParenTokenKind)
@@ -160,9 +161,16 @@ func consume(p *Parser, k TokenKind) {
 	nextToken(p)
 }
 
-func ignoreNewlines(p *Parser) {
-	for match(p, NewlineTokenKind) {
-		nextToken(p)
+func ignore(p *Parser, kinds ...TokenKind) {
+OuterLoop:
+	for {
+		for _, k := range kinds {
+			if match(p, k) {
+				nextToken(p)
+				continue OuterLoop
+			}
+		}
+		return
 	}
 }
 
@@ -174,15 +182,26 @@ func (e ParseError) Error() string {
 	return e.err
 }
 
+func tokLineCol(p *Parser, t *Token) (int, int) {
+	srcSoFar := p.src[:t.Pos]
+	line := bytes.Count(srcSoFar, []byte{'\n'}) + 1
+	col := bytes.LastIndexByte(srcSoFar, '\n')
+	if col < 0 {
+		col = p.pos
+	}
+	return line, col
+}
+
 func unexpectedTokenErr(p *Parser, caller string) {
+	line, col := tokLineCol(p, p.t)
 	around := surroundingText(p)
-	arrow := strings.Repeat("-", p.col) + "^"
+	arrow := strings.Repeat("-", col) + "^"
 	err := fmt.Errorf(`
 %s: got unexpected token (%v, %q) at line %d col %d
 %s
 %s
 %s
-`, caller, p.t.Kind, p.t.Value, p.line+1, p.col+1, around, arrow, string(debug.Stack()))
+`, caller, p.t.Kind, p.t.Value, line, col, around, arrow, string(debug.Stack()))
 
 	parseErr(p, err)
 }
@@ -197,14 +216,22 @@ func makeToken(p *Parser, k TokenKind) {
 }
 
 func surroundingText(p *Parser) []byte {
-	startLine := p.line - 2
-	if startLine < 0 {
-		startLine = 0
+	// startLine := p.line - 2
+	// if startLine < 0 {
+	// 	startLine = 0
+	// }
+	// start := p.lineEndings[startLine]
+	// end := p.pos + 20
+	// if end >= len(p.src) {
+	// 	end = len(p.src)
+	// }
+	start := p.t.Pos - 10
+	end := p.t.Pos + 10
+	if start < 0 {
+		start = 0
 	}
-	start := p.lineEndings[startLine]
-	end := p.pos + 20
 	if end >= len(p.src) {
-		end = len(p.src)
+		end = len(p.src) - 1
 	}
 	return p.src[start:end]
 }
@@ -239,16 +266,19 @@ func nextToken(p *Parser) {
 		case '@':
 			readAttribute(p)
 			return
+		case '"':
+			readString(p)
+			return
 		case '\n':
 			nextChar(p)
 			makeToken(p, NewlineTokenKind)
 			return
-		case '"':
-			readString(p)
-			return
-		case ' ':
+		case ' ', '\t', '\r':
 			skipChar(p)
 			continue
+		case ';':
+			readComment(p)
+			return
 		}
 		if isDigit(peekChar(p.r)) {
 			readNumber(p)
@@ -269,6 +299,13 @@ func readAttribute(p *Parser) {
 		nextChar(p)
 	}
 	makeToken(p, AttributeTokenKind)
+}
+
+func readComment(p *Parser) {
+	for !isEOF(p.r) && peekChar(p.r) != '\n' {
+		nextChar(p)
+	}
+	makeToken(p, CommentTokenKind)
 }
 
 // TODO: Handle escaped quotes.

@@ -1,7 +1,7 @@
 (dir "tests"
   (file "a.txt"
-    (@template "path/to/template.tmpl")
-    (@perms 0755)
+    (@contents "this if file a.txt")
+    (@perms 0755))
   (file "b.txt"
     (@perms 0755)
     (@contents "this is file b.txt")))

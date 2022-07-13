@@ -7,7 +7,10 @@ draft: false
 ## Grammar
 
 ```
-config    = sexpr*
+config    = stmt*
+stmt      = comment
+          | sexpr
+comment   = ';' [^\n]*
 sexpr     = '(' literal arg* ')'
 arg       = sexpr
           | literal

@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 
 	"github.com/kendalharland/mktree"
-)
 
-const version = "0.0.0"
+	_ "embed"
+)
 
 func main() {
 	if err := execute(context.TODO()); err != nil {
@@ -28,16 +28,15 @@ func usage() {
 func printVersion() {
 	e, _ := os.Executable()
 	name := filepath.Base(e)
-	fmt.Fprintf(os.Stdout, "%s %s\n", name, version)
+	fmt.Fprintf(os.Stdout, "%s %s\n", name, mktree.Version())
 }
 
 func execute(ctx context.Context) error {
-	mktree.Docs(os.Stdout)
-	return nil
-
-	var root string
-	var debug bool
-	var version bool
+	var (
+		root    string
+		debug   bool
+		version bool
+	)
 	args := &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
 
 	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")

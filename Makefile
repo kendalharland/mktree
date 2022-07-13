@@ -40,7 +40,7 @@ format:
 
 mktree: clean
 	@echo "==== Building mktree ($(config)) ===="
-	go build -o $(TARGET) ./cmd
+	go build -o $(TARGET) ./cmd/mktree
 
 run: mktree
 	@echo "==== Running mktree ($(config)) ===="

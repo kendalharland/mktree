@@ -15,9 +15,9 @@ draft: false
 ### Variables
 
 Variables may appear anywhere in a `*.tree` file and must be surrounded by
-`%(` and `)`.  Variables are insert using a simple string substitution.
-This is performed during a preprocessing step and means that variables are
-not part of the mktree grammar, which in turn means they are not interpreted.
+`%(` and `)`.  Variables are inserted using simple string substitution by a
+preprocessing step before code is interpreted. This means that variables are
+not part of the mktree grammar.
 
 Example:  Given a file `layout.tree` with the following contents:
 

@@ -6,18 +6,19 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
   <meta name="generator" content="Hugo 0.101.0" />
-  <link rel="canonical" href="/posts/reference/" />
+  <link rel="canonical" href="/mktree/posts/reference/" />
 
   
     
-    <meta name="description" content="Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms link @soft @hard Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are insert using a simple string substitution. This is performed during a preprocessing step and means that variables are not part of the mktree grammar, which in turn means they are not interpreted.">
+    <meta name="description" content="Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms link @soft @hard Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.
+Example: Given a file layout.">
   
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"> 
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"> 
-  <link rel="manifest" href="/site.webmanifest"> 
-  <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#000000"> 
+  <link rel="apple-touch-icon" sizes="180x180" href="/mktree/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/mktree/favicon-32x32.png"> 
+  <link rel="icon" type="image/png" sizes="16x16" href="/mktree/favicon-16x16.png"> 
+  <link rel="manifest" href="/mktree/site.webmanifest"> 
+  <link rel="mask-icon" href="/mktree/safari-pinned-tab.svg" color="#000000"> 
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 
@@ -46,11 +47,11 @@
     }
   </style>
 
-  <link rel="stylesheet" href="/css/prism.css" media="none" onload="this.media='all';">
+  <link rel="stylesheet" href="/mktree/css/prism.css" media="none" onload="this.media='all';">
 
   
   
-  <link rel="stylesheet" type="text/css" href="/css/styles.css">
+  <link rel="stylesheet" type="text/css" href="/mktree/css/styles.css">
 
   
 
@@ -165,13 +166,13 @@
     <div class="intro">
       <a
         class="logo"
-        href="/"
+        href="/mktree"
         aria-label="mktree home page"
       >
         
           <img 
-            src="/images/logo.svg" 
-            alt="Logo"
+            src="/mktree/images/logo.svg" 
+            alt="mktree"
           >
         
       </a>
@@ -195,7 +196,7 @@
       
       
       
-      <a href="/" >
+      <a href="/mktree/" >
         <svg class="bookmark-icon" aria-hidden="true" focusable="false" viewBox="0 0 40 50">
           <use href="#bookmark"></use>
         </svg>
@@ -208,7 +209,7 @@
       
       
       
-      <a href="/posts/changelog/" >
+      <a href="/mktree/posts/changelog/" >
         <svg class="bookmark-icon" aria-hidden="true" focusable="false" viewBox="0 0 40 50">
           <use href="#bookmark"></use>
         </svg>
@@ -221,7 +222,7 @@
       
       
       
-      <a href="/posts/language/" >
+      <a href="/mktree/posts/language/" >
         <svg class="bookmark-icon" aria-hidden="true" focusable="false" viewBox="0 0 40 50">
           <use href="#bookmark"></use>
         </svg>
@@ -234,7 +235,7 @@
       
       
       
-      <a href="/posts/reference/" aria-current="page">
+      <a href="/mktree/posts/reference/" aria-current="page">
         <svg class="bookmark-icon" aria-hidden="true" focusable="false" viewBox="0 0 40 50">
           <use href="#bookmark"></use>
         </svg>
@@ -299,9 +300,9 @@
 <h3 id="paths">Paths</h3>
 <h3 id="variables">Variables</h3>
 <p>Variables may appear anywhere in a <code>*.tree</code> file and must be surrounded by
-<code>%(</code> and <code>)</code>.  Variables are insert using a simple string substitution.
-This is performed during a preprocessing step and means that variables are
-not part of the mktree grammar, which in turn means they are not interpreted.</p>
+<code>%(</code> and <code>)</code>.  Variables are inserted using simple string substitution by a
+preprocessing step before code is interpreted. This means that variables are
+not part of the mktree grammar.</p>
 <p>Example:  Given a file <code>layout.tree</code> with the following contents:</p>
 <pre><code>(file &quot;%(filename)&quot;)
 </code></pre>
@@ -402,9 +403,9 @@ children.</p>
     </div>
     
 
-<script src="/js/dom-scripts.js"></script>  
+<script src="/mktree/js/dom-scripts.js"></script>  
 
-<script src="/js/prism.js"></script>
+<script src="/mktree/js/prism.js"></script>
 
 
 

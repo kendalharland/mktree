@@ -2,7 +2,5 @@
 - Verify that @contents and @template are mutually exclusive (error).
 - Trim space around vars during preprocessing.
 - Convert -root to a -root_dir variable.
-- Support for links.
-- Docs logo.
-- Keep a changelog
 - Autogenerate the release notes from the changelog.
+- Support for links.

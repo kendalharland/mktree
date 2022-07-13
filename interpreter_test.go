@@ -19,6 +19,20 @@ func TestInterpreter_Interpret(t *testing.T) {
 		wantErr error
 	}{
 		// OK cases.
+		{
+			name: "comments",
+			source: `
+            ; comment line 1
+            (dir "a")
+            
+            ; comment line 2
+            (file "b")
+			`,
+			want: []interface{}{
+				&Dir{Name: "a", Perms: defaultDirMode},
+				&File{Name: "b", Perms: defaultFileMode},
+			},
+		},
 		// Dir
 		{
 			name:   "dir",

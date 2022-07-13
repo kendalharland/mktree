@@ -17,17 +17,16 @@ function build {
 
   echo "info: running hugo"
   pushd $workdir/doc
-  hugo
+  hugo --baseURL=/mktree # We serve at /mktree on github pages
   popd
 
   echo "info: copying generated docs to $DOCS_OUT_DIR"
-  rsync -av --progress --delete $workdir/doc/docs/ $DOCS_OUT_DIR
+  rsync -av --progress --delete $workdir/doc/public/ $DOCS_OUT_DIR
+  touch $DOCS_OUT_DIR/.nojekyll # Disable jekyll on github pages.
   rm -rf $workdir
 }
 
 function serve {
-  build
-
   pushd $DOCS_SRC_DIR
   hugo server -D
   popd
