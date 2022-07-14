@@ -33,14 +33,16 @@ func printVersion() {
 
 func execute(ctx context.Context) error {
 	var (
-		root    string
-		debug   bool
-		version bool
+		root               string
+		debug              bool
+		version            bool
+		allowUndefinedVars bool
 	)
 	args := &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
 
 	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")
 	flag.BoolVar(&version, "version", false, "Print the version and exit")
+	flag.BoolVar(&allowUndefinedVars, "allow-undefined-vars", false, "Allow undefined variables in the input")
 	flag.Var(args, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
 	flag.Parse()
 
@@ -67,8 +69,9 @@ func execute(ctx context.Context) error {
 	}
 
 	i := &mktree.Interpreter{
-		Vars: subs,
-		Root: root,
+		Vars:               subs,
+		Root:               root,
+		AllowUndefinedVars: allowUndefinedVars,
 	}
 
 	d, err := i.Interpret(bytes.NewReader(input))

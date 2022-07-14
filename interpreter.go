@@ -26,9 +26,10 @@ func Interpret(r io.Reader) (*Dir, error) {
 }
 
 type Interpreter struct {
-	Root   string
-	Vars   map[string]string
-	Stderr io.Writer
+	Root               string
+	Vars               map[string]string
+	AllowUndefinedVars bool
+	Stderr             io.Writer
 }
 
 func (i *Interpreter) init() error {
@@ -51,7 +52,7 @@ func (i *Interpreter) init() error {
 func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 	i.init()
 
-	source, err := preprocess(r, i.Vars)
+	source, err := preprocess(r, i.Vars, i.AllowUndefinedVars)
 	if err != nil {
 		return nil, err
 	}

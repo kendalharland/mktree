@@ -6,7 +6,7 @@ ifeq ($(config),debug)
 	GO_TEST_FLAGS += -v
 endif
 
-PROJECTS := mtktree
+PROJECTS := mktree
 TARGET := ./bin/mktree
 
 .PHONY: all bump-patch clean docs docs-serve format run test help
