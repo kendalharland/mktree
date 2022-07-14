@@ -18,7 +18,7 @@ With mktree, writing a code generator is as easy as declaring the filesystem lay
 And running `mktree`:
 
 ```
-mktree layout.tree -vars=username=kendal
+mktree -vars=username=kendal layout.tree 
 ```
 
 

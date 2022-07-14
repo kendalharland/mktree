@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Grammar config = stmt* stmt = comment | sexpr comment = &#39;;&#39; [^\n]* sexpr = &#39;(&#39; literal arg* &#39;)&#39; arg = sexpr | literal literal = KEYWORD | ATTRIBUTE | STRING | NUMBER KEYWORD = &#39;dir&#39; | &#39;file&#39; | &#39;link&#39; ATTRIBUTE = &#39;@&#39; [a-zA-Z0-9_-]&#43; STRING = &#39;&#34;&#39;[^&#34;]*&#39;&#34;&#39; NUMBER = [0-9]&#43; ">
+    <meta name="description" content="Grammar config = stmt* stmt = comment | sexpr comment = &#39;;&#39; [^\n]* sexpr = &#39;(&#39; literal arg* &#39;)&#39; arg = sexpr | literal literal = KEYWORD | ATTRIBUTE | STRING | NUMBER KEYWORD = &#39;dir&#39; | &#39;file&#39; ATTRIBUTE = &#39;@&#39; [a-zA-Z0-9_-]&#43; STRING = &#39;&#34;&#39;[^&#34;]*&#39;&#34;&#39; NUMBER = [0-9]&#43; ">
   
 
   <link rel="apple-touch-icon" sizes="180x180" href="/mktree/apple-touch-icon.png">
@@ -265,7 +265,7 @@ literal   = KEYWORD
           | ATTRIBUTE
           | STRING
           | NUMBER
-KEYWORD   = 'dir' | 'file' | 'link'
+KEYWORD   = 'dir' | 'file'
 ATTRIBUTE = '@' [a-zA-Z0-9_-]+
 STRING    = '&quot;'[^&quot;]*'&quot;'
 NUMBER    = [0-9]+

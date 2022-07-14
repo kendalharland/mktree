@@ -1,0 +1,5 @@
+; file: layout.tree
+(dir "users/%(username)"
+  (file "README.md"
+      (@contents "This directory belongs to %(username)")
+      (@perms 0666)))

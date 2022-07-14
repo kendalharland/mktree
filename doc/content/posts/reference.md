@@ -139,14 +139,3 @@ __Examples__
 ```
 (@perms <mode>)
 ```
-
-### link
-
-```
-(link <src> <dest> [attributes...])
-```
-
-TODO
-
-#### @soft
-#### @hard

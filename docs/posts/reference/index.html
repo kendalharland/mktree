@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms link @soft @hard Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.
+    <meta name="description" content="Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.
 Example: Given a file layout.">
   
 
@@ -284,12 +284,6 @@ Example: Given a file layout.">
             <li><a href="#perms-1">@perms</a></li>
           </ul>
         </li>
-        <li><a href="#link">link</a>
-          <ul>
-            <li><a href="#soft">@soft</a></li>
-            <li><a href="#hard">@hard</a></li>
-          </ul>
-        </li>
       </ul>
     </li>
   </ul>
@@ -374,12 +368,6 @@ children.</p>
 <h4 id="perms-1">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
 </code></pre>
-<h3 id="link">link</h3>
-<pre><code>(link &lt;src&gt; &lt;dest&gt; [attributes...])
-</code></pre>
-<p>TODO</p>
-<h4 id="soft">@soft</h4>
-<h4 id="hard">@hard</h4>
 
   </main>
 
