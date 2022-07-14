@@ -32,8 +32,18 @@ type Interpreter struct {
 }
 
 func (i *Interpreter) init() error {
+	if i.Root == "" {
+		root, err := filepath.Abs(i.Root)
+		if err != nil {
+			return err
+		}
+		i.Root = root
+	}
 	if i.Vars == nil {
 		i.Vars = make(map[string]string)
+	}
+	if _, ok := i.Vars["root_dir"]; !ok {
+		i.Vars["root_dir"] = i.Root
 	}
 	return nil
 }

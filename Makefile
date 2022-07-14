@@ -1,3 +1,11 @@
+ifndef config
+  config=release
+endif
+
+ifeq ($(config),debug)
+	GO_TEST_FLAGS += -v
+endif
+
 PROJECTS := mtktree
 TARGET := ./bin/mktree
 
@@ -41,9 +49,9 @@ run: mktree
 	@echo "==== Running mktree ($(config)) ===="
 	$(TARGET)
 
-test: mktree
+test:
 	@echo "==== Testing mktree (test) ===="
-	go test -v ./...
+	go test $(GO_TEST_FLAGS) ./...
 
 help:
 	@echo "Usage: make [target]"

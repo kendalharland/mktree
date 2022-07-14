@@ -40,9 +40,7 @@ func execute(ctx context.Context) error {
 	args := &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
 
 	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")
-	flag.StringVar(&root, "root", "", "Where to create the files and directories (defaults to cwd")
 	flag.BoolVar(&version, "version", false, "Print the version and exit")
-
 	flag.Var(args, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
 	flag.Parse()
 
@@ -54,14 +52,6 @@ func execute(ctx context.Context) error {
 	if flag.NArg() == 0 {
 		usage()
 		return nil
-	}
-
-	if root == "" {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("no root directory given and can't get the current working directory: %w", err)
-		}
-		root = cwd
 	}
 
 	input, err := ioutil.ReadFile(flag.Arg(0))

@@ -1,5 +1,4 @@
 V1
-- cli: Convert -root to a -root_dir variable.
 - cli: Warn when variables aren't set unless -allow-unset-vars is set.
 - docs: Autogenerate the release notes from the changelog.
 - docs: Document the CLI in /posts/reference.md
