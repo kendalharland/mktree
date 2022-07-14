@@ -17,7 +17,7 @@ func main() {
 		Name:  "release-tool",
 		Title: "A tool for managing mktree releases",
 		Commands: []*subcommands.Command{
-			cmdBumpVersionBuild,
+			cmdBumpVersion,
 			subcommands.CmdHelp,
 		},
 	}
@@ -25,7 +25,7 @@ func main() {
 	os.Exit(subcommands.Run(a, nil))
 }
 
-var cmdBumpVersionBuild = &subcommands.Command{
+var cmdBumpVersion = &subcommands.Command{
 	UsageLine: "bump-version <version-file>",
 	ShortDesc: "Bump the build number",
 	LongDesc:  "Bump the build number",

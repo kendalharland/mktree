@@ -18,9 +18,21 @@ endif
 PROJECTS := mktree
 TARGET := ./bin/mktree
 
-.PHONY: all clean docs format run test help
+.PHONY: all bump-patch clean docs docs-serve format run test help
 
 all: $(PROJECTS)
+
+bump-patch:
+	@echo "=== Bumping patch number ==="
+	go run ./cmd/release-tool bump-version -patch VERSION
+
+bump-minor:
+	@echo "=== Bumping minor number ==="
+	go run ./cmd/release-tool bump-version -minor VERSION
+
+bump-major:
+	@echo "=== Bumping major number ==="
+	go run ./cmd/release-tool bump-version -major VERSION
 
 clean:
 	@echo "==== Removing mktree ===="
