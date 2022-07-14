@@ -1,4 +1,4 @@
-PROJECTS := mktree
+PROJECTS := mtktree
 TARGET := ./bin/mktree
 
 .PHONY: all bump-patch clean docs docs-serve format run test help
@@ -29,11 +29,11 @@ docs-serve:
 	@echo "=== Serving documentation ==="
 	tools/docs.sh -s
 
-format:
+format: 
 	@echo "==== Formatting mktree source code ===="
-	gofmt -w ./...
+	gofmt -w .
 
-mktree: clean
+mktree: format docs clean
 	@echo "==== Building mktree ($(config)) ===="
 	go build -o $(TARGET) ./cmd/mktree
 
@@ -41,9 +41,9 @@ run: mktree
 	@echo "==== Running mktree ($(config)) ===="
 	$(TARGET)
 
-test:
+test: mktree
 	@echo "==== Testing mktree (test) ===="
-	go test ./...
+	go test -v ./...
 
 help:
 	@echo "Usage: make [target]"
