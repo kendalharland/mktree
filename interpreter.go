@@ -13,16 +13,11 @@ const (
 	defaultFileMode = os.FileMode(0666)
 )
 
-type InterpretError struct {
-	message string
-}
-
-func (e InterpretError) Error() string {
-	return e.String()
-}
-
-func (e InterpretError) String() string {
-	return "interpret error: " + e.message
+func defaultRootDir(name string) *Dir {
+	return &Dir{
+		Name:  name,
+		Perms: defaultDirMode,
+	}
 }
 
 func Interpret(r io.Reader) (*Dir, error) {
@@ -31,8 +26,9 @@ func Interpret(r io.Reader) (*Dir, error) {
 }
 
 type Interpreter struct {
-	Root string
-	Vars map[string]string
+	Root   string
+	Vars   map[string]string
+	Stderr io.Writer
 }
 
 func (i *Interpreter) init() error {
@@ -40,13 +36,6 @@ func (i *Interpreter) init() error {
 		i.Vars = make(map[string]string)
 	}
 	return nil
-}
-
-func defaultRootDir(name string) *Dir {
-	return &Dir{
-		Name:  name,
-		Perms: defaultDirMode,
-	}
 }
 
 func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
@@ -57,7 +46,8 @@ func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 		return nil, err
 	}
 
-	config, err := Parse(source)
+	p := &Parser{Stderr: i.Stderr}
+	config, err := p.Parse(source)
 	if err != nil {
 		return nil, err
 	}
@@ -156,8 +146,10 @@ func evalFile(parent *Dir, e *SExpr) error {
 		return err
 	}
 
+	name = filepath.Join(parent.Name, name)
+	name = filepath.Clean(name)
 	f := &File{
-		Name:  filepath.Join(parent.Name, name),
+		Name:  name,
 		Perms: defaultFileMode,
 	}
 	for _, arg := range e.Args[1:] {
@@ -201,7 +193,5 @@ func evalFileMode(a *Arg) (os.FileMode, error) {
 }
 
 func interpretError(format string, args ...interface{}) error {
-	return InterpretError{
-		message: fmt.Sprintf(format, args...),
-	}
+	return errorf(ErrInterpret, format, args...)
 }

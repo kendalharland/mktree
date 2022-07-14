@@ -1,12 +1,12 @@
-- lang: Normalize file and dirnames and make them relative to root_dir.
+V1
 - lang: Verify that @contents and @template are mutually exclusive (error).
-- lang: Support for hard and soft links.
-- lang: Test parser errors.
-- lang: Test interpreter errors.
-- cli: Trim space around vars during preprocessing.
 - cli: Convert -root to a -root_dir variable.
 - cli: Warn when variables aren't set unless -allow-unset-vars is set.
-- docs:Preprocess docs for code snippet links
 - docs: Autogenerate the release notes from the changelog.
 - docs: Document the CLI in /posts/reference.md
 - docs: Explain the language in /posts/language.md
+
+V1
+- docs:Preprocess docs for code snippet links
+- lang: Support for hard and soft links.
+- cli: Trim space around vars during preprocessing.

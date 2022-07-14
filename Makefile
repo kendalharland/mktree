@@ -1,20 +1,3 @@
-ifndef config
-  config=release
-endif
-
-ifeq ($(config),debug)
-			 ALL_CFLAGS += -g -DDEBUG_MODE -DDEBUG_TRACE_EXECUTION
-else ifeq ($(config),debuggc)
-			 ALL_CFLAGS += -g -DDEBUG_STRESS_GC -DDEBUG_LOG_GC
-else ifeq ($(config),optimize)
-			 ALL_CFLAGS += -DOBA_COMPUTED_GOTO
-else ifeq ($(config),test)
-			 # Disable stack traces to simplify comparing error output.
-			 ALL_CFLAGS += -DDISABLE_STACK_TRACES -DDEBUG_STRESS_GC
-else ifneq ($(config),release)
-		$(error "invalid configuration $(config)")
-endif
-
 PROJECTS := mktree
 TARGET := ./bin/mktree
 
@@ -60,7 +43,7 @@ run: mktree
 
 test:
 	@echo "==== Testing mktree (test) ===="
-	go test -v ./...
+	go test ./...
 
 help:
 	@echo "Usage: make [target]"

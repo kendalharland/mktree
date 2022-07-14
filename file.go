@@ -1,6 +1,7 @@
 package mktree
 
 import (
+	"errors"
 	"os"
 )
 
@@ -33,6 +34,9 @@ func (f *File) setPerms(args []*Arg) error {
 }
 
 func (f *File) setTemplate(args []*Arg) error {
+	if len(f.Contents) > 0 {
+		return errors.New("cannot set @template if @contents is set")
+	}
 	filename, err := evalString(args[0])
 	if err != nil {
 		return err
@@ -42,6 +46,9 @@ func (f *File) setTemplate(args []*Arg) error {
 }
 
 func (f *File) setContents(args []*Arg) error {
+	if f.TemplateFilename != "" {
+		return errors.New("cannot set @contents if @template is set")
+	}
 	contents, err := evalString(args[0])
 	if err != nil {
 		return err

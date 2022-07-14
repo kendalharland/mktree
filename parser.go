@@ -27,6 +27,7 @@ const (
 	RParenTokenKind    TokenKind = "RParen"
 	NewlineTokenKind   TokenKind = "Newline"
 	EofTokenKind       TokenKind = "EOF"
+	ErrTokenKind       TokenKind = "Error"
 
 	// Keywords
 	DirTokenKind  TokenKind = "dir"
@@ -44,6 +45,10 @@ type Token struct {
 	Kind  TokenKind
 	Value string
 	Pos   int
+}
+
+func (t Token) String() string {
+	return fmt.Sprintf("(%v, %q, %d)", t.Kind, t.Value, t.Pos)
 }
 
 type Config struct {
@@ -75,34 +80,40 @@ type Arg struct {
 //
 
 type Parser struct {
-	r   *bufio.Reader
-	t   *Token
-	err error
+	s []byte          // Original source.
+	r *bufio.Reader   // Buffered source reader.
+	p int             // Source position.
+	t *Token          // Current token.
+	b strings.Builder // Current token source buffer.
+	e error           // Most recent error.
 
-	line        int
-	col         int
-	pos         int
-	lineEndings []int
-	src         []byte
-	buf         strings.Builder
+	Stderr io.Writer
 }
 
 func Parse(r io.Reader) (*Config, error) {
-	p := &Parser{}
-	return p.Parse(r)
+	return (&Parser{}).Parse(r)
+}
+
+func (p *Parser) init(r io.Reader) error {
+	src, err := ioutil.ReadAll(r)
+	if err != nil {
+		return err
+	}
+	if p.Stderr == nil {
+		p.Stderr = os.Stderr
+	}
+	p.s = src
+	p.r = bufio.NewReader(bytes.NewReader(p.s))
+	makeToken(p, EofTokenKind)
+	return nil
 }
 
 func (p *Parser) Parse(r io.Reader) (*Config, error) {
-	src, err := ioutil.ReadAll(r)
-	if err != nil {
+	if err := p.init(r); err != nil {
 		return nil, err
 	}
-	p.src = src
-	p.r = bufio.NewReader(bytes.NewReader(p.src))
-	makeToken(p, EofTokenKind)
-	p.lineEndings = []int{0}
 	c := parseConfig(p)
-	return c, p.err
+	return c, p.e
 }
 
 func parseConfig(p *Parser) *Config {
@@ -150,15 +161,16 @@ func parseLiteral(p *Parser) *Literal {
 		nextToken(p)
 		return &Literal{Token: t}
 	}
-	unexpectedTokenErr(p, "parseLiteral")
-	return nil
+	unexpectedTokenErr(p)
+	return &Literal{Token: t}
 }
 
 func consume(p *Parser, k TokenKind) {
-	if !match(p, k) {
-		unexpectedTokenErr(p, "consume")
+	if match(p, k) {
+		nextToken(p)
+		return
 	}
-	nextToken(p)
+	unexpectedTokenErr(p)
 }
 
 func ignore(p *Parser, kinds ...TokenKind) {
@@ -174,66 +186,13 @@ OuterLoop:
 	}
 }
 
-type ParseError struct {
-	err string
-}
-
-func (e ParseError) Error() string {
-	return e.err
-}
-
-func tokLineCol(p *Parser, t *Token) (int, int) {
-	srcSoFar := p.src[:t.Pos]
-	line := bytes.Count(srcSoFar, []byte{'\n'}) + 1
-	col := bytes.LastIndexByte(srcSoFar, '\n')
-	if col < 0 {
-		col = p.pos
-	}
-	return line, col
-}
-
-func unexpectedTokenErr(p *Parser, caller string) {
-	line, col := tokLineCol(p, p.t)
-	around := surroundingText(p)
-	arrow := strings.Repeat("-", col) + "^"
-	err := fmt.Errorf(`
-%s: got unexpected token (%v, %q) at line %d col %d
-%s
-%s
-%s
-`, caller, p.t.Kind, p.t.Value, line, col, around, arrow, string(debug.Stack()))
-
-	parseErr(p, err)
-}
-
 func makeToken(p *Parser, k TokenKind) {
 	p.t = &Token{
 		Kind:  k,
-		Value: p.buf.String(),
-		Pos:   p.pos - p.buf.Len(),
+		Value: p.b.String(),
+		Pos:   p.p - p.b.Len(),
 	}
-	p.buf.Reset()
-}
-
-func surroundingText(p *Parser) []byte {
-	// startLine := p.line - 2
-	// if startLine < 0 {
-	// 	startLine = 0
-	// }
-	// start := p.lineEndings[startLine]
-	// end := p.pos + 20
-	// if end >= len(p.src) {
-	// 	end = len(p.src)
-	// }
-	start := p.t.Pos - 10
-	end := p.t.Pos + 10
-	if start < 0 {
-		start = 0
-	}
-	if end >= len(p.src) {
-		end = len(p.src) - 1
-	}
-	return p.src[start:end]
+	p.b.Reset()
 }
 
 //
@@ -331,20 +290,21 @@ func readKeyword(p *Parser) {
 		nextChar(p)
 	}
 
-	if kind, ok := keywords[buffer(p)]; ok {
+	source := buffer(p)
+	if kind, ok := keywords[source]; ok {
 		makeToken(p, kind)
 		return
 	}
 
-	syntaxErr(p, "invalid keyword: %q", buffer(p))
+	syntaxErr(p, "invalid keyword: %q", source)
 }
 
 func buffer(p *Parser) string {
-	return p.buf.String()
+	return p.b.String()
 }
 
 func nextChar(p *Parser) {
-	p.buf.WriteByte(skipChar(p))
+	p.b.WriteByte(skipChar(p))
 }
 
 func skipChar(p *Parser) byte {
@@ -353,14 +313,7 @@ func skipChar(p *Parser) byte {
 	}
 
 	b, _ := p.r.ReadByte()
-	p.pos += 1
-	p.col += 1
-	if b == '\n' {
-		p.col = 0
-		p.line += 1
-		p.lineEndings = append(p.lineEndings, p.pos)
-	}
-
+	p.p += 1
 	return b
 }
 
@@ -397,12 +350,48 @@ func isWhiteSpace(b byte) bool {
 // Errors
 //
 
-func parseErr(p *Parser, e error) {
-	p.err = e
-	fmt.Fprint(os.Stderr, e.Error())
+func perror(p *Parser, e error) {
+	line, col, source := tokenContext(p, p.t.Pos)
+	err := fmt.Errorf("%w at line %d col %d:\n%s", e, line, col, source)
+	if p.e == nil {
+		p.e = err
+	}
+	fmt.Fprintln(p.Stderr, err)
+	fmt.Fprintln(p.Stderr, string(debug.Stack()))
+}
+
+func parseErr(p *Parser, format string, args ...interface{}) {
+	if match(p, ErrTokenKind) {
+		// We already reported this as a syntax error.
+		return
+	}
+	perror(p, errorf(ErrParse, format, args...))
 }
 
 func syntaxErr(p *Parser, format string, args ...interface{}) {
-	p.err = fmt.Errorf("syntax error: "+format, args...)
-	fmt.Fprint(os.Stderr, p.err.Error())
+	makeToken(p, ErrTokenKind)
+	perror(p, errorf(ErrSyntax, format, args...))
+}
+
+func unexpectedTokenErr(p *Parser) {
+	parseErr(p, "unexpected token %v", p.t)
+	nextToken(p)
+}
+
+func tokenContext(p *Parser, pos int) (int, int, string) {
+	before := p.s[:pos]
+	after := p.s[pos:]
+	lineStart := bytes.LastIndexByte(before, '\n')
+	if lineStart < 0 {
+		lineStart = 0
+	}
+	lineEnd := bytes.IndexByte(after, '\n')
+	if lineEnd < 0 {
+		lineEnd = len(p.s) - 1
+	}
+	lineSrc := string(p.s[lineStart:lineEnd])
+	line := bytes.Count(before, []byte{'\n'}) + 1
+	col := pos - lineStart
+	arrow := strings.Repeat("-", col) + "^"
+	return line, col, lineSrc + "\n" + arrow
 }

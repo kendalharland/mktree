@@ -1,6 +1,7 @@
 package mktree
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
@@ -13,6 +14,7 @@ import (
 func TestInterpreter_Interpret(t *testing.T) {
 	tests := []struct {
 		name    string
+		root    string
 		source  string
 		vars    map[string]string
 		want    []interface{}
@@ -92,66 +94,100 @@ func TestInterpreter_Interpret(t *testing.T) {
 				&File{Name: "a", TemplateFilename: "template.tmpl", Perms: defaultFileMode},
 			},
 		},
-
+		{
+			name: "paths_are_relative_to_parent",
+			root: "/root",
+			source: `(file "/a")
+			         (dir  "/b" (file "/c"))`,
+			want: []interface{}{
+				&File{Name: "/root/a", Perms: defaultFileMode},
+				&Dir{Name: "/root/b", Perms: defaultDirMode, Files: []*File{
+					{Name: "/root/b/c", Perms: defaultFileMode},
+				}},
+			},
+		},
+		{
+			name: "paths_are_cleaned",
+			source: `(file "///////a/b///c/////d")
+			         (dir "///d/e///f///")`,
+			want: []interface{}{
+				&File{Name: "/a/b/c/d", Perms: defaultFileMode},
+				&Dir{Name: "/d/e/f", Perms: defaultDirMode},
+			},
+		},
 		// Error cases.
 		{
 			name:    "file_missing_name",
 			source:  `(file)`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
 		},
 		{
 			name:    "dir_missing_name",
 			source:  `(dir)`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
 		},
 		{
 			name:    "dir_perms_missing_name",
 			source:  `(dir (@perms 0555))`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
 		},
 		{
 			name:    "file_perms_missing_name",
 			source:  `(file (@perms 0712))`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
 		},
 
 		{
 			name:    "dir_perms_invalid_file_mode_type",
 			source:  `(dir "foo" (@perms "nan"))`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
 		},
 		{
 			name:    "file_perms_invalid_file_mode_type",
 			source:  `(file (@perms "nan"))`,
-			wantErr: InterpretError{},
+			wantErr: ErrInterpret,
+		},
+		{
+			name:    "file_template_is_mutually_exclusive_with_contents",
+			source:  `(file "a" (@content "this is a") (@template "a.tmpl"))`,
+			wantErr: ErrInterpret,
+		},
+		{
+			name:    "file_contents_is_mutually_exclusive_with_template",
+			source:  `(file "a" (@template "a.tmpl") (@content "this is a"))`,
+			wantErr: ErrInterpret,
 		},
 		{
 			name:    "dir_perms_invalid_neg_file_mode",
 			source:  `(dir "a" (@perms -1))`, // Grammar excludes negative ints.
-			wantErr: ParseError{},
+			wantErr: ErrSyntax,
 		},
 		{
 			name:    "file_perms_invalid_neg_file_mode",
 			source:  `(file "a" (@perms -1))`,
-			wantErr: ParseError{},
+			wantErr: ErrSyntax,
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
+			var stderr bytes.Buffer
 			i := &Interpreter{
-				Vars: test.vars,
+				Vars:   test.vars,
+				Root:   test.root,
+				Stderr: &stderr,
 			}
 
-			want, err := mkdir(test.want)
+			want, err := mkdir(test.root, test.want)
 			if err != nil {
 				t.Fatal(err)
 			}
 
 			d, err := i.Interpret(strings.NewReader(test.source))
+			t.Log(stderr.String())
 			switch {
 			case err != nil && test.wantErr != nil:
-				if !errors.As(err, &test.wantErr) {
-					t.Fatalf("Interpret(`%s`) wanted a %#T but got %v", test.source, test.wantErr, err)
+				if !errors.Is(err, test.wantErr) {
+					t.Fatalf("Interpret(`%s`) wanted a %v but got %v", test.source, test.wantErr, err)
 				}
 				return
 			case err != nil && test.wantErr == nil:
@@ -160,24 +196,24 @@ func TestInterpreter_Interpret(t *testing.T) {
 				t.Fatalf("Interpret(`%s`) wanted error but got %+v", test.source, d)
 			}
 
-			if diff := cmp.Diff(d, want); diff != "" {
+			if diff := cmp.Diff(want, d); diff != "" {
 				t.Fatalf("Interpret(`%s`) got diff (+got,-want):\n%s\n", test.source, diff)
 			}
 		})
 	}
 }
 
-func mkdir(entries []interface{}) (*Dir, error) {
-	root := defaultRootDir("")
+func mkdir(root string, entries []interface{}) (*Dir, error) {
+	d := defaultRootDir(root)
 	for i, e := range entries {
 		switch t := e.(type) {
 		case *File:
-			root.Files = append(root.Files, t)
+			d.Files = append(d.Files, t)
 		case *Dir:
-			root.Dirs = append(root.Dirs, t)
+			d.Dirs = append(d.Dirs, t)
 		default:
 			return nil, fmt.Errorf("value %v of type %#T at position %d is not a *File or a *Dir", e, e, i)
 		}
 	}
-	return root, nil
+	return d, nil
 }
