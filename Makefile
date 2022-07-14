@@ -6,7 +6,7 @@ ifeq ($(config),debug)
 	GO_TEST_FLAGS += -v
 endif
 
-PROJECTS := mktree
+PROJECTS := mktree docs
 TARGET := ./bin/mktree
 
 .PHONY: all bump-patch clean docs docs-serve format run test help
@@ -29,11 +29,11 @@ clean:
 	@echo "==== Removing mktree ===="
 	rm -rf $(TARGET)
 
-docs:
+docs: mktree
 	@echo "=== Regenerating documentation ==="
 	tools/docs.sh -b
 
-docs-serve:
+docs-serve: mktree
 	@echo "=== Serving documentation ==="
 	tools/docs.sh -s
 
@@ -41,7 +41,7 @@ format:
 	@echo "==== Formatting mktree source code ===="
 	gofmt -w .
 
-mktree: format docs clean
+mktree: format clean
 	@echo "==== Building mktree ($(config)) ===="
 	go build -o $(TARGET) ./cmd/mktree
 

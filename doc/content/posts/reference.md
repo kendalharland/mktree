@@ -6,6 +6,12 @@ draft: false
 
 {{<toc>}}
 
+## The command-line interface
+
+```
+%(snippet cli-usage)
+```
+
 ## Concepts
 
 ### `.tree` files
@@ -39,7 +45,7 @@ The variable `%(root_dir)` is always defined. It is the absolute path to the
 directory where mktree will create all other files and directories. The caller
 can set `root_dir` like any other variable using mktree's `-var` flag.
 
-## File system entities
+## Filesystem entities
 
 ### file
 

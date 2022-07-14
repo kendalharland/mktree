@@ -13,7 +13,7 @@
       <pubDate>Wed, 13 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/changelog/</guid>
-      <description>Release Notes mktree-v0.0.0 // 2022-07-13 First release! </description>
+      <description>%(snippet release-notes)</description>
     </item>
     
     <item>
@@ -22,7 +22,10 @@
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/language/</guid>
-      <description>Grammar config = stmt* stmt = comment | sexpr comment = &#39;;&#39; [^\n]* sexpr = &#39;(&#39; literal arg* &#39;)&#39; arg = sexpr | literal literal = KEYWORD | ATTRIBUTE | STRING | NUMBER KEYWORD = &#39;dir&#39; | &#39;file&#39; ATTRIBUTE = &#39;@&#39; [a-zA-Z0-9_-]+ STRING = &#39;&amp;quot;&#39;[^&amp;quot;]*&#39;&amp;quot;&#39; NUMBER = [0-9]+ </description>
+      <description>Contents Introduction Language Strings Numbers Attributes Filesystem entities Comments Variables Grammar Introduction This page describes the design and behavior of the language.
+Language mktree uses a basic S-expression (&amp;ldquo;sexpr&amp;rdquo;) syntax to describe a tree of filesystem entities to create. The types are:
+Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strings are enclosed in double quotes. There are no supported escape sequences.
+&amp;quot;This is a string.&amp;quot; Numbers Numbers are parsed as unsigned integers having no bit-width.</description>
     </item>
     
     <item>
@@ -31,8 +34,7 @@
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/reference/</guid>
-      <description>Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.
-Example: Given a file layout.</description>
+      <description>Contents The command-line interface Concepts .tree files Paths Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms The command-line interface %(snippet cli-usage) Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.</description>
     </item>
     
   </channel>

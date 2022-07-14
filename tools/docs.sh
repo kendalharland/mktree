@@ -9,6 +9,11 @@ DOCS_OUT_DIR=docs
 mkdir -p $DOCS_TMP_DIR
 
 function build {
+  baseURL="$1"
+  if [ -z $baseURL ]; then
+    baseURL="/mktree"
+  fi
+
   workdir=$(mktemp -d)
 
   echo "info: copying doc/ to $workdir"
@@ -17,25 +22,38 @@ function build {
 
   echo "info: running hugo"
   pushd $workdir/doc
-  hugo --baseURL=/mktree # We serve at /mktree on github pages
+  hugo --baseURL=$baseURL # We serve at /mktree on github pages
   popd
+  
+  #
+  # Post-build documentation cleanup.
+  #
 
+  echo "info: disabling github pages"
+  touch $workdir/doc/public/.nojekyll 
+
+  echo "info: post-processing hugo output"
+  go run ./cmd/gendocs "$workdir/doc/public"
+
+  # Finalization.
   echo "info: copying generated docs to $DOCS_OUT_DIR"
   rsync -av --progress --delete $workdir/doc/public/ $DOCS_OUT_DIR
-  touch $DOCS_OUT_DIR/.nojekyll # Disable jekyll on github pages.
   rm -rf $workdir
 }
 
 function serve {
-  pushd $DOCS_SRC_DIR
-  hugo server -D
+  #pushd $DOCS_SRC_DIR
+  #hugo server -D
+  build "/"
+  pushd $DOCS_OUT_DIR
+  python3 -m http.server
   popd
 }
 
 while getopts "bps" COMMAND; do
   case $COMMAND in
   b) 
-     build
+     build "/mktree"
      ;;
   s) 
      serve

@@ -10,8 +10,19 @@
 
   
     
-    <meta name="description" content="Contents Concepts .tree files Paths Variables Builtin Variables root_dir File system entities file @contents @perms @template dir @perms Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.
-Example: Given a file layout.">
+    <meta name="description" content="Contents The command-line interface Concepts .tree files Paths Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
+              [-vars=&lt;name&gt;=&lt;value&gt;]
+              &lt;source-file&gt;
+
+  -allow-undefined-vars
+    	Allow undefined variables in the input
+  -debug
+    	Print the results without creating any files or directories
+  -vars value
+    	A list of key-value pairs to substitute in the source while preprocessing
+  -version
+    	Print the version and exit
+ Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.">
   
 
   <link rel="apple-touch-icon" sizes="180x180" href="/mktree/apple-touch-icon.png">
@@ -53,6 +64,8 @@ Example: Given a file layout.">
   
   <link rel="stylesheet" type="text/css" href="/mktree/css/styles.css">
 
+  
+    <link rel="stylesheet" href="/mktree/css/custom.css">
   
 
   
@@ -258,6 +271,7 @@ Example: Given a file layout.">
     <h2>Contents</h2>
     <nav id="TableOfContents">
   <ul>
+    <li><a href="#the-command-line-interface">The command-line interface</a></li>
     <li><a href="#concepts">Concepts</a>
       <ul>
         <li><a href="#tree-files"><code>.tree</code> files</a></li>
@@ -270,7 +284,7 @@ Example: Given a file layout.">
         <li><a href="#root_dir">root_dir</a></li>
       </ul>
     </li>
-    <li><a href="#file-system-entities">File system entities</a>
+    <li><a href="#filesystem-entities">Filesystem entities</a>
       <ul>
         <li><a href="#file">file</a>
           <ul>
@@ -289,6 +303,21 @@ Example: Given a file layout.">
   </ul>
 </nav>
 </div>
+<h2 id="the-command-line-interface">The command-line interface</h2>
+<pre><code>usage: mktree [-debug] [-version] [-allow-undefined-vars]
+              [-vars=&lt;name&gt;=&lt;value&gt;]
+              &lt;source-file&gt;
+
+  -allow-undefined-vars
+    	Allow undefined variables in the input
+  -debug
+    	Print the results without creating any files or directories
+  -vars value
+    	A list of key-value pairs to substitute in the source while preprocessing
+  -version
+    	Print the version and exit
+
+</code></pre>
 <h2 id="concepts">Concepts</h2>
 <h3 id="tree-files"><code>.tree</code> files</h3>
 <h3 id="paths">Paths</h3>
@@ -308,7 +337,7 @@ not part of the mktree grammar.</p>
 <p>The variable <code>%(root_dir)</code> is always defined. It is the absolute path to the
 directory where mktree will create all other files and directories. The caller
 can set <code>root_dir</code> like any other variable using mktree&rsquo;s <code>-var</code> flag.</p>
-<h2 id="file-system-entities">File system entities</h2>
+<h2 id="filesystem-entities">Filesystem entities</h2>
 <h3 id="file">file</h3>
 <pre><code>(file &lt;filename&gt; [attributes...])
 </code></pre>
@@ -374,7 +403,7 @@ children.</p>
           
             <footer role="contentinfo">
   <div
-  
+  style="display: none;"
   >
     <label for="themer">
       dark theme: <input type="checkbox" id="themer" class="vh">
@@ -382,6 +411,8 @@ children.</p>
       <span aria-hidden="true"></span>
     </label>
   </div>
+  
+    Made by <a href="https://github.com/kendalharland">Kendal Harland</a>.
   
 </footer>
 

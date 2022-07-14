@@ -1,9 +1,17 @@
-V1
-- docs: Autogenerate the release notes from the changelog.
-- docs: Document the CLI in /posts/reference.md
-- docs: Explain the language in /posts/language.md
+1.0.0
+- docs: Fix typos in reference
+- docs: Convert examples/ folder to runnable examples (and update index.md)
 
-V1
-- docs:Preprocess docs for code snippet links
-- lang: Support for hard and soft links.
+1.1.0
+- docs: Preprocess docs for code snippet links.
 - cli: Trim space around vars during preprocessing.
+
+2.0.0
+- cli: Warn the user if their command would overwrite files (add flag to disable).
+
+2.2.0
+- lang: Support for hard and soft links.
+
+Any:
+- docs: Add links to releases in the changelog.
+

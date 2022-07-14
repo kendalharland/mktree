@@ -9,11 +9,39 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/kendalharland/mktree"
 
 	_ "embed"
 )
+
+const helpext = `
+usage: mktree [-debug] [-version] [-allow-undefined-vars]
+              [-vars=<name>=<value>]
+              <source-file>
+`
+
+func parseFlags() *options {
+	flag.Usage = usage
+
+	o := &options{}
+	o.vars = &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
+	flag.BoolVar(&o.debug, "debug", false, "Print the results without creating any files or directories")
+	flag.BoolVar(&o.version, "version", false, "Print the version and exit")
+	flag.BoolVar(&o.allowUndefinedVars, "allow-undefined-vars", false, "Allow undefined variables in the input")
+	flag.Var(o.vars, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
+	flag.Parse()
+	return o
+}
+
+type options struct {
+	root               string
+	debug              bool
+	version            bool
+	allowUndefinedVars bool
+	vars               flag.Getter
+}
 
 func main() {
 	if err := execute(context.TODO()); err != nil {
@@ -22,7 +50,9 @@ func main() {
 }
 
 func usage() {
-
+	fmt.Println(strings.TrimSpace(helpext))
+	fmt.Println()
+	flag.PrintDefaults()
 }
 
 func printVersion() {
@@ -32,27 +62,15 @@ func printVersion() {
 }
 
 func execute(ctx context.Context) error {
-	var (
-		root               string
-		debug              bool
-		version            bool
-		allowUndefinedVars bool
-	)
-	args := &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
+	o := parseFlags()
 
-	flag.BoolVar(&debug, "debug", false, "Print the results without creating any files or directories")
-	flag.BoolVar(&version, "version", false, "Print the version and exit")
-	flag.BoolVar(&allowUndefinedVars, "allow-undefined-vars", false, "Allow undefined variables in the input")
-	flag.Var(args, "vars", "A list of key-value pairs to substitute in the source while preprocessing")
-	flag.Parse()
-
-	if version {
+	if o.version {
 		printVersion()
 		return nil
 	}
 
 	if flag.NArg() == 0 {
-		usage()
+		flag.Usage()
 		return nil
 	}
 
@@ -62,7 +80,7 @@ func execute(ctx context.Context) error {
 	}
 
 	subs := map[string]string{}
-	kvs := args.Get().([]flag.Value)
+	kvs := o.vars.Get().([]flag.Value)
 	for _, v := range kvs {
 		kv := v.(*keyValueFlag)
 		subs[kv.K] = kv.V
@@ -70,8 +88,8 @@ func execute(ctx context.Context) error {
 
 	i := &mktree.Interpreter{
 		Vars:               subs,
-		Root:               root,
-		AllowUndefinedVars: allowUndefinedVars,
+		Root:               o.root,
+		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 
 	d, err := i.Interpret(bytes.NewReader(input))
@@ -79,7 +97,7 @@ func execute(ctx context.Context) error {
 		return err
 	}
 
-	if debug {
+	if o.debug {
 		mktree.DebugDir(d, os.Stdout)
 		return nil
 	}
