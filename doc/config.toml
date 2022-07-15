@@ -36,6 +36,11 @@ name = "Reference"
 url = "/posts/reference/"
 weight = 2
 
+[[menu.nav]]
+name = "Source"
+url = "https://github.com/kendalharland/mktree"
+weight = 2
+
 [markup]
   defaultMarkdownHandler = 'goldmark'
   [markup.tableOfContents]
