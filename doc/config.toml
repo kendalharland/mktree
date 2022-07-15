@@ -1,4 +1,5 @@
 baseURL = '/'
+canonifyURLs = true
 languageCode = 'en-us'
 title = 'mktree'
 theme = "cupper-hugo-theme"

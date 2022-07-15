@@ -6,7 +6,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
   <meta name="generator" content="Hugo 0.101.0" />
-  <link rel="canonical" href="/mktree/posts/language/" />
+  <link rel="canonical" href="/mktree/mktree/posts/language/" />
 
   
     
@@ -16,11 +16,11 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
 &#34;This is a string.&#34; Numbers Numbers are parsed as unsigned integers having no bit-width.">
   
 
-  <link rel="apple-touch-icon" sizes="180x180" href="/mktree/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="/mktree/favicon-32x32.png"> 
-  <link rel="icon" type="image/png" sizes="16x16" href="/mktree/favicon-16x16.png"> 
-  <link rel="manifest" href="/mktree/site.webmanifest"> 
-  <link rel="mask-icon" href="/mktree/safari-pinned-tab.svg" color="#000000"> 
+  <link rel="apple-touch-icon" sizes="180x180" href="/mktree/mktree/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/mktree/mktree/favicon-32x32.png"> 
+  <link rel="icon" type="image/png" sizes="16x16" href="/mktree/mktree/favicon-16x16.png"> 
+  <link rel="manifest" href="/mktree/mktree/site.webmanifest"> 
+  <link rel="mask-icon" href="/mktree/mktree/safari-pinned-tab.svg" color="#000000"> 
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="theme-color" content="#ffffff">
 
@@ -170,7 +170,7 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
     <div class="intro">
       <a
         class="logo"
-        href="/mktree"
+        href="/mktree/mktree"
         aria-label="mktree home page"
       >
         
@@ -305,8 +305,8 @@ specify the data it holds, but it&rsquo;s invalid to set <code>@contents</code> 
 <p>Filesystem entities such as directories and files are declared as sexprs.
 Each entity requires a name and may accept several attributes unique to the entity
 type. For more information about each kind of entity see the
-<a href="/posts/reference/#file-system-entities">Filesystem entities</a>
-section of the <a href="/posts/reference/">reference</a>.</p>
+<a href="/mktree/posts/reference/#file-system-entities">Filesystem entities</a>
+section of the <a href="/mktree/posts/reference/">reference</a>.</p>
 <h3 id="comments">Comments</h3>
 <p>Comments begin with &lsquo;;&rsquo; and span to the end of the current line.
 Comments may appear anywhere the source, including in the middle of sexprs.</p>
@@ -316,7 +316,7 @@ Comments may appear anywhere the source, including in the middle of sexprs.</p>
 <p>Variables are alphabetic literals surrounded by <code>%(</code> <code>)</code>. They are not
 interpreted. Instead they are inserted into the source using basic string
 substitution. For more information about variables see the
-<a href="/posts/reference/#variables">Variables</a> section of the <a href="/posts/reference/">reference</a>.</p>
+<a href="/mktree/posts/reference/#variables">Variables</a> section of the <a href="/mktree/posts/reference/">reference</a>.</p>
 <h2 id="grammar">Grammar</h2>
 <pre><code>config    = stmt*
 stmt      = comment
