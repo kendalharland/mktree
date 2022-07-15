@@ -1,7 +1,0 @@
-(dir "tests"
-  (file "a.txt"
-    (@contents "this if file a.txt")
-    (@perms 0755))
-  (file "b.txt"
-    (@perms 0755)
-    (@contents "this is file b.txt")))

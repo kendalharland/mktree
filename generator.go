@@ -2,6 +2,7 @@ package mktree
 
 import (
 	"os"
+	"path/filepath"
 )
 
 func GenerateDir(d *Dir) error {
@@ -23,6 +24,9 @@ func GenerateDir(d *Dir) error {
 }
 
 func GenerateFile(f *File) error {
+	if err := os.MkdirAll(filepath.Dir(f.Name), defaultDirMode); err != nil {
+		return err
+	}
 	fd, err := os.OpenFile(f.Name, os.O_CREATE|os.O_RDWR, f.Perms)
 	if err != nil {
 		return err

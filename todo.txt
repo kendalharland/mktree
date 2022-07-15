@@ -1,6 +1,5 @@
 1.0.0
 - docs: Fix typos in reference
-- docs: Convert examples/ folder to runnable examples (and update index.md)
 
 1.1.0
 - docs: Preprocess docs for code snippet links.
