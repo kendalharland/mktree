@@ -11,6 +11,3 @@
 2.2.0
 - lang: Support for hard and soft links.
 
-Any:
-- docs: Add links to releases in the changelog.
-

@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/gomarkdown/markdown"
@@ -66,6 +67,7 @@ func copyReleaseNotesToDocs(docsPath string) error {
 		return err
 	}
 
+	// Copy everything after "# [Releases]"
 	terminator := []byte("# [Releases]")
 	changelog := make([]byte, len(cl))
 	for i := len(cl) - 1; i >= 0; i-- {
@@ -76,17 +78,25 @@ func copyReleaseNotesToDocs(docsPath string) error {
 		}
 	}
 
+	m := regexp.MustCompile(`\[(\d.\d.\d)\]`)
+	tagsURLPrefix := "https://github.com/kendalharland/mktree/releases/tag/v"
+	replacement := fmt.Sprintf("[${1}](%s${1})", tagsURLPrefix)
+	changelog = []byte(m.ReplaceAllString(string(changelog), replacement))
+
+	extensions := parser.CommonExtensions
+	parser := parser.NewWithExtensions(extensions)
+	html := string(markdown.ToHTML(changelog, parser, nil))
+
 	filename := filepath.Join(docsPath, "posts/changelog/index.html")
 	input, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("reading %v: %w", filename, err)
 	}
 
-	extensions := parser.CommonExtensions
-	parser := parser.NewWithExtensions(extensions)
-	html := markdown.ToHTML(changelog, parser, nil)
-
-	output := strings.Replace(string(input), "%(snippet release-notes)", string(html), -1)
+	// Replace the meta heading.
+	output := strings.ReplaceAll(string(input), `content="%(snippet release-notes)"`, `content="release-notes"`)
+	// Replace the actual heading.
+	output = strings.ReplaceAll(output, `%(snippet release-notes)`, html)
 	if err := ioutil.WriteFile(filename, []byte(output), 0666); err != nil {
 		return fmt.Errorf("writing %v: %w", filename, err)
 	}
