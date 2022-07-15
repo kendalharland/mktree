@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/kendalharland/mktree/parse"
 )
 
 func TestInterpreter_Interpret(t *testing.T) {
@@ -175,12 +176,12 @@ func TestInterpreter_Interpret(t *testing.T) {
 		{
 			name:    "dir_perms_invalid_neg_file_mode",
 			source:  `(dir "a" (@perms -1))`, // Grammar excludes negative ints.
-			wantErr: ErrSyntax,
+			wantErr: parse.ErrSyntax,
 		},
 		{
 			name:    "file_perms_invalid_neg_file_mode",
 			source:  `(file "a" (@perms -1))`,
-			wantErr: ErrSyntax,
+			wantErr: parse.ErrSyntax,
 		},
 	}
 	for _, test := range tests {
@@ -202,7 +203,7 @@ func TestInterpreter_Interpret(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			d, err := i.Interpret(strings.NewReader(test.source))
+			tree, err := i.Interpret(strings.NewReader(test.source))
 			t.Log(stderr.String())
 			switch {
 			case err != nil && test.wantErr != nil:
@@ -213,10 +214,10 @@ func TestInterpreter_Interpret(t *testing.T) {
 			case err != nil && test.wantErr == nil:
 				t.Fatalf("Interpret(`%s`) got unexpected error: %v", test.source, err)
 			case err == nil && test.wantErr != nil:
-				t.Fatalf("Interpret(`%s`) wanted error but got %+v", test.source, d)
+				t.Fatalf("Interpret(`%s`) wanted error but got %+v", test.source, tree.root)
 			}
 
-			if diff := cmp.Diff(want, d); diff != "" {
+			if diff := cmp.Diff(want, tree.root); diff != "" {
 				t.Fatalf("Interpret(`%s`) got diff (+got,-want):\n%s\n", test.source, diff)
 			}
 		})

@@ -1,4 +1,4 @@
-package mktree
+package parse
 
 import (
 	"bufio"
@@ -365,12 +365,12 @@ func parseErr(p *Parser, format string, args ...interface{}) {
 		// We already reported this as a syntax error.
 		return
 	}
-	perror(p, errorf(ErrParse, format, args...))
+	perror(p, Errorf(ErrParse, format, args...))
 }
 
 func syntaxErr(p *Parser, format string, args ...interface{}) {
 	makeToken(p, ErrTokenKind)
-	perror(p, errorf(ErrSyntax, format, args...))
+	perror(p, Errorf(ErrSyntax, format, args...))
 }
 
 func unexpectedTokenErr(p *Parser) {

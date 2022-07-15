@@ -80,5 +80,5 @@ func interpretVars(source string, vars map[string]string) {
 	if err != nil {
 		panic(err)
 	}
-	DebugDir(dir, os.Stdout)
+	dir.DebugPrint(os.Stdout)
 }

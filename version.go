@@ -5,6 +5,5 @@ import _ "embed"
 //go:embed VERSION
 var version []byte
 
-func Version() string {
-	return string(version)
-}
+// Version returns the current version of this package.
+func Version() string { return string(version) }

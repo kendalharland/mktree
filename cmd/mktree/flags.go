@@ -2,35 +2,37 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"strings"
 )
 
-type repeatedFlag struct {
-	value  func() flag.Value
-	values []flag.Value
+type variablesFlag struct {
+	vars []*keyValueFlag
 }
 
-func (f *repeatedFlag) Set(value string) error {
-	v := f.value()
-	if err := v.Set(value); err != nil {
+func (f *variablesFlag) Set(value string) error {
+	kv := &keyValueFlag{}
+	if err := kv.Set(value); err != nil {
 		return err
 	}
-	f.values = append(f.values, v)
+	f.vars = append(f.vars, kv)
 	return nil
 }
 
-func (f *repeatedFlag) String() string {
-	ss := make([]string, 0, len(f.values))
-	for _, v := range f.values {
+func (f *variablesFlag) String() string {
+	ss := make([]string, 0, len(f.vars))
+	for _, v := range f.vars {
 		ss = append(ss, v.String())
 	}
 	return "[" + strings.Join(ss, ",") + "]"
 }
 
-func (f *repeatedFlag) Get() interface{} {
-	return f.values
+func (f *variablesFlag) Get() interface{} {
+	vars := map[string]string{}
+	for _, kv := range f.vars {
+		vars[kv.K] = kv.V
+	}
+	return vars
 }
 
 type keyValueFlag struct {

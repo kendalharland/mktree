@@ -25,8 +25,7 @@ usage: mktree [-debug] [-version] [-allow-undefined-vars]
 func parseFlags() *options {
 	flag.Usage = usage
 
-	o := &options{}
-	o.vars = &repeatedFlag{value: func() flag.Value { return &keyValueFlag{} }}
+	o := &options{vars: &variablesFlag{}}
 	flag.BoolVar(&o.debug, "debug", false, "Print the results without creating any files or directories")
 	flag.BoolVar(&o.version, "version", false, "Print the version and exit")
 	flag.BoolVar(&o.allowUndefinedVars, "allow-undefined-vars", false, "Allow undefined variables in the input")
@@ -79,28 +78,21 @@ func execute(ctx context.Context) error {
 		return err
 	}
 
-	subs := map[string]string{}
-	kvs := o.vars.Get().([]flag.Value)
-	for _, v := range kvs {
-		kv := v.(*keyValueFlag)
-		subs[kv.K] = kv.V
-	}
-
 	i := &mktree.Interpreter{
-		Vars:               subs,
+		Vars:               o.vars.Get().(map[string]string),
 		Root:               o.root,
 		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 
-	d, err := i.Interpret(bytes.NewReader(input))
+	tree, err := i.Interpret(bytes.NewReader(input))
 	if err != nil {
 		return err
 	}
 
 	if o.debug {
-		mktree.DebugDir(d, os.Stdout)
+		tree.DebugPrint(os.Stdout)
 		return nil
 	}
 
-	return mktree.GenerateDir(d)
+	return tree.Create()
 }

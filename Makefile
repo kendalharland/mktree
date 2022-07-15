@@ -28,7 +28,7 @@ bump-major:
 
 clean:
 	@echo "==== Removing mktree ===="
-	rm -rf $(TARGET)
+	rm -rf ./bin/*
 
 docs: mktree
 	@echo "=== Regenerating documentation ==="
@@ -48,8 +48,9 @@ mktree: format clean
 
 release: mktree
 	@echo "==== Building mktree ($(VERSION)) ===="
-	GOOS=darwin GOARCH=amd64 go build -o bin/mktree-$(VERSION)-darwin-amd64
-	GOOS=linux  GOARCH=amd64 go build -o bin/mktree-$(VERSION)-linux-amd64
+	env GOOS=darwin GOARCH=amd64 go build -o bin/mktree-$(VERSION)-darwin-amd64 ./cmd/mktree
+	env GOOS=linux  GOARCH=amd64 go build -o bin/mktree-$(VERSION)-linux-amd64  ./cmd/mktree
+	chmod -R a+x ./bin/
 
 run: mktree
 	@echo "==== Running mktree ($(config)) ===="

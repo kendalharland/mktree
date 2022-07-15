@@ -1,11 +1,14 @@
 package mktree
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/kendalharland/mktree/parse"
 )
 
 const (
@@ -20,9 +23,8 @@ func defaultRootDir(name string) *Dir {
 	}
 }
 
-func Interpret(r io.Reader) (*Dir, error) {
-	i := &Interpreter{}
-	return i.Interpret(r)
+func Interpret(r io.Reader) (*Tree, error) {
+	return (&Interpreter{}).Interpret(r)
 }
 
 type Interpreter struct {
@@ -49,7 +51,7 @@ func (i *Interpreter) init() error {
 	return nil
 }
 
-func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
+func (i *Interpreter) Interpret(r io.Reader) (*Tree, error) {
 	i.init()
 
 	source, err := preprocess(r, i.Vars, i.AllowUndefinedVars)
@@ -57,7 +59,7 @@ func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 		return nil, err
 	}
 
-	p := &Parser{Stderr: i.Stderr}
+	p := &parse.Parser{Stderr: i.Stderr}
 	config, err := p.Parse(source)
 	if err != nil {
 		return nil, err
@@ -68,10 +70,10 @@ func (i *Interpreter) Interpret(r io.Reader) (*Dir, error) {
 		return nil, err
 	}
 
-	return root, nil
+	return &Tree{root}, nil
 }
 
-func evalConfig(c *Config, root *Dir) error {
+func evalConfig(c *parse.Config, root *Dir) error {
 	for _, e := range c.SExprs {
 		if err := evalDirChild(root, e); err != nil {
 			return err
@@ -80,13 +82,13 @@ func evalConfig(c *Config, root *Dir) error {
 	return nil
 }
 
-func evalDirChild(parent *Dir, e *SExpr) (err error) {
+func evalDirChild(parent *Dir, e *parse.SExpr) (err error) {
 	switch e.Literal.Token.Kind {
-	case AttributeTokenKind:
+	case parse.AttributeTokenKind:
 		err = evalAttr(parent, e)
-	case DirTokenKind:
+	case parse.DirTokenKind:
 		err = evalDir(parent, e)
-	case FileTokenKind:
+	case parse.FileTokenKind:
 		err = evalFile(parent, e)
 	default:
 		err = interpretError("invalid s-expression: %v", e.Literal.Token)
@@ -94,9 +96,9 @@ func evalDirChild(parent *Dir, e *SExpr) (err error) {
 	return err
 }
 
-func evalFileChild(parent *File, e *SExpr) (err error) {
+func evalFileChild(parent *File, e *parse.SExpr) (err error) {
 	switch e.Literal.Token.Kind {
-	case AttributeTokenKind:
+	case parse.AttributeTokenKind:
 		err = evalAttr(parent, e)
 	default:
 		err = interpretError("invalid s-expression: %v", e.Literal.Token)
@@ -104,7 +106,7 @@ func evalFileChild(parent *File, e *SExpr) (err error) {
 	return err
 }
 
-func evalDir(parent *Dir, e *SExpr) error {
+func evalDir(parent *Dir, e *parse.SExpr) error {
 	if len(e.Args) < 1 {
 		return interpretError("expected a directory name")
 	}
@@ -128,7 +130,7 @@ func evalDir(parent *Dir, e *SExpr) error {
 	return nil
 }
 
-func evalAttr(owner interface{}, e *SExpr) error {
+func evalAttr(owner interface{}, e *parse.SExpr) error {
 	attr, err := evalAttrName(e.Literal)
 	if err != nil {
 		return err
@@ -136,7 +138,7 @@ func evalAttr(owner interface{}, e *SExpr) error {
 	return setAttr(owner, attr, e.Args)
 }
 
-func setAttr(owner interface{}, name string, args []*Arg) error {
+func setAttr(owner interface{}, name string, args []*parse.Arg) error {
 	switch t := owner.(type) {
 	case *File:
 		return t.setAttribute(name, args)
@@ -147,7 +149,7 @@ func setAttr(owner interface{}, name string, args []*Arg) error {
 	}
 }
 
-func evalFile(parent *Dir, e *SExpr) error {
+func evalFile(parent *Dir, e *parse.SExpr) error {
 	if len(e.Args) < 1 {
 		return interpretError("expected a filename")
 	}
@@ -173,26 +175,26 @@ func evalFile(parent *Dir, e *SExpr) error {
 	return nil
 }
 
-func evalAttrName(l *Literal) (string, error) {
-	if l.Token.Kind != AttributeTokenKind {
+func evalAttrName(l *parse.Literal) (string, error) {
+	if l.Token.Kind != parse.AttributeTokenKind {
 		return "", interpretError("%q is not an attribute", l.Token.Value)
 	}
 	// Skip leading '@'.
 	return l.Token.Value[1:], nil
 }
 
-func evalString(a *Arg) (string, error) {
+func evalString(a *parse.Arg) (string, error) {
 	l := a.Literal
-	if l == nil || l.Token.Kind != StringTokenKind {
+	if l == nil || l.Token.Kind != parse.StringTokenKind {
 		return "", interpretError("%v is not a string", a.Token)
 	}
 	return l.Token.Value, nil
 }
 
-func evalFileMode(a *Arg) (os.FileMode, error) {
+func evalFileMode(a *parse.Arg) (os.FileMode, error) {
 	l := a.Literal
 
-	if l.Token.Kind != NumberTokenKind {
+	if l.Token.Kind != parse.NumberTokenKind {
 		return 0, interpretError("%q is not a number", l.Token.Value)
 	}
 	n, err := strconv.ParseUint(l.Token.Value, 8, 32)
@@ -203,6 +205,8 @@ func evalFileMode(a *Arg) (os.FileMode, error) {
 	return os.FileMode(uint32(n)), nil
 }
 
+var ErrInterpret = errors.New("interpet error")
+
 func interpretError(format string, args ...interface{}) error {
-	return errorf(ErrInterpret, format, args...)
+	return parse.Errorf(ErrInterpret, format, args...)
 }
