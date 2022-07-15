@@ -8,8 +8,9 @@ endif
 
 PROJECTS := mktree docs
 TARGET := ./bin/mktree
+VERSION := $(shell cat VERSION)
 
-.PHONY: all bump-patch clean docs docs-serve format run test help
+.PHONY: all bump-patch bump-minor bump-major clean docs docs-serve format release run test help
 
 all: $(PROJECTS)
 
@@ -45,6 +46,11 @@ mktree: format clean
 	@echo "==== Building mktree ($(config)) ===="
 	go build -o $(TARGET) ./cmd/mktree
 
+release: mktree
+	@echo "==== Building mktree ($(VERSION)) ===="
+	GOOS=darwin GOARCH=amd64 go build -o bin/mktree-$(VERSION)-darwin-amd64
+	GOOS=linux  GOARCH=amd64 go build -o bin/mktree-$(VERSION)-linux-amd64
+
 run: mktree
 	@echo "==== Running mktree ($(config)) ===="
 	$(TARGET)
@@ -58,6 +64,9 @@ help:
 	@echo ""
 	@echo "TARGETS:"
 	@echo "   all (default)"
+	@echo "   bump-patch"
+	@echo "   bump-minor"
+	@echo "   bump-major"
 	@echo "   clean"
 	@echo "   docs"
 	@echo "   docs-serve"
