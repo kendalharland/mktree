@@ -1,0 +1,11 @@
+; start:basic_dir
+; Generates example/example.txt
+(dir "example"
+    (@perms 0666)
+    (file "example.txt"))
+; end:basic_dir
+
+; start:basic_file
+; Generates example.txt
+(file "example.txt")
+; end:basic_file

@@ -116,7 +116,7 @@ Hello, Example User!
 __File examples__
 
 ```
-%(snippet file_examples interpreter_test.go)
+%(snippet basic_file examples/examples.tree)
 ```
 
 ### dir
@@ -137,7 +137,7 @@ children.
 __Examples__
 
 ```
-%(snippet dir_examples interpreter_test.go)
+%(snippet basic_dir examples/examples.tree)
 ```
 
 #### @perms

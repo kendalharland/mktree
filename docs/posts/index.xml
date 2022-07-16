@@ -13,7 +13,7 @@
       <pubDate>Wed, 13 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/changelog/</guid>
-      <description>%(snippet release-notes)</description>
+      <description>%(content release-notes)</description>
     </item>
     
     <item>
@@ -34,7 +34,7 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/reference/</guid>
-      <description>Contents The command-line interface Concepts .tree files Paths Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms The command-line interface %(snippet cli-usage) Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.</description>
+      <description>Contents The command-line interface Concepts .tree files Paths Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms The command-line interface %(content cli-usage) Concepts .tree files Paths Variables Variables may appear anywhere in a *.tree file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.</description>
     </item>
     
   </channel>

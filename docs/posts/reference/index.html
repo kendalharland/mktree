@@ -391,7 +391,8 @@ given the file <code>layout.tree</code>:</p>
 <pre><code>Hello, Example User!
 </code></pre>
 <p><strong>File examples</strong></p>
-<pre><code>%(snippet tag:file_examples source_file:/interpreter_test.go)
+<pre><code>; Generates example.txt
+(file "example.txt")
 </code></pre>
 <h3 id="dir">dir</h3>
 <pre><code>(dir &lt;dirname&gt; [attributes... | children...])
@@ -404,7 +405,10 @@ then the path is evaluated relative to the root directory. Directory attributes
 and children may be given in any order, and directories may have any number of
 children.</p>
 <p><strong>Examples</strong></p>
-<pre><code>%(snippet tag:dir_examples source_file:/interpreter_test.go)
+<pre><code>; Generates example/example.txt
+(dir "example"
+    (@perms 0666)
+    (file "example.txt"))
 </code></pre>
 <h4 id="perms-1">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
