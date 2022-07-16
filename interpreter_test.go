@@ -186,15 +186,15 @@ func TestInterpreter_Interpret(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			root := "[test_root]"
-			if test.root != "" {
-				root = test.root
+			root := test.root
+			if root == "" {
+				root = "[test_root]"
 			}
 
 			var stderr bytes.Buffer
 			i := &Interpreter{
-				Vars:   test.vars,
 				Root:   root,
+				Vars:   test.vars,
 				Stderr: &stderr,
 			}
 

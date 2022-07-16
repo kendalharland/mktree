@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"text/template"
+
+	"golang.org/x/sys/unix"
 )
 
 type Tree struct {
@@ -19,13 +21,17 @@ func (t *Tree) DebugPrint(w io.Writer) {
 
 func (t *Tree) Create(opts ...Option) error {
 	ctx := &treeContext{}
-	for _, o := range append(opts, builtin...) {
+	// append builtins first so the user can override them.
+	for _, o := range append(builtins, opts...) {
 		o.apply(ctx)
 	}
 	return t.createDir(ctx, t.root)
 }
 
 func (t *Tree) createDir(ctx *treeContext, d *Dir) error {
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+
 	if err := os.MkdirAll(d.Name, d.Perms); err != nil {
 		return err
 	}
@@ -44,6 +50,9 @@ func (t *Tree) createDir(ctx *treeContext, d *Dir) error {
 }
 
 func (t *Tree) createFile(ctx *treeContext, f *File) error {
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+
 	contents, err := fileContents(ctx, f)
 	if err != nil {
 		return err

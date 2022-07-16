@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var builtin = []Option{
+var builtins = []Option{
 	WithTemplateFunction("FileExists", newFileExistsBuiltin()),
 	WithTemplateFunction("FileContents", newFileContentsBuiltin()),
 	WithTemplateFunction("Now", newNowBuiltin()),

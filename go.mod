@@ -9,4 +9,5 @@ require (
 	github.com/maruel/subcommands v1.1.1 // indirect
 	github.com/texttheater/golang-levenshtein v1.0.1 // indirect
 	golang.org/x/mod v0.5.1 // indirect
+	golang.org/x/sys v0.0.0-20220715151400-c0bba94af5f8 // indirect
 )

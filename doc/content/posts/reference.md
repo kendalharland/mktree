@@ -89,8 +89,7 @@ contents of the file.  The current user must have permission to read the templat
 file. See the [templates](#templates) section below for more information.
 
 ```
-(file "hello.txt"
-    (@template "hello.txt.tmpl" "first=Example" "last=User"))
+%(snippet template_example examples/examples.tree)
 ```
 
 And the file `hello_world.txt.tmpl`:
@@ -108,7 +107,7 @@ Hello, Example User!
 __File examples__
 
 ```
-%(snippet basic_file examples/examples.tree)
+%(snippet file_example examples/examples.tree)
 ```
 
 ### dir
@@ -129,7 +128,7 @@ children.
 __Examples__
 
 ```
-%(snippet basic_dir examples/examples.tree)
+%(snippet dir_example examples/examples.tree)
 ```
 
 #### @perms

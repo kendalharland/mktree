@@ -26,6 +26,7 @@ func parseFlags() *options {
 	flag.Usage = usage
 
 	o := &options{vars: &variablesFlag{}}
+	flag.StringVar(&o.root, "root", ".", "Where to create the tree")
 	flag.BoolVar(&o.debug, "debug", false, "Print the results without creating any files or directories")
 	flag.BoolVar(&o.version, "version", false, "Print the version and exit")
 	flag.BoolVar(&o.allowUndefinedVars, "allow-undefined-vars", false, "Allow undefined variables in the input")
@@ -35,6 +36,7 @@ func parseFlags() *options {
 }
 
 type options struct {
+	root               string
 	debug              bool
 	version            bool
 	allowUndefinedVars bool
@@ -59,7 +61,7 @@ func printVersion() {
 	fmt.Fprintf(os.Stdout, "%s %s\n", name, mktree.Version())
 }
 
-func execute(ctx context.Context) error {
+func execute(_ context.Context) error {
 	o := parseFlags()
 
 	if o.version {
@@ -79,6 +81,7 @@ func execute(ctx context.Context) error {
 
 	i := &mktree.Interpreter{
 		Vars:               o.vars.Get().(map[string]string),
+		Root:               o.root,
 		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 

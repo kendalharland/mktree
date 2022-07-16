@@ -1,9 +1,11 @@
 package mktree
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -35,22 +37,31 @@ type Interpreter struct {
 }
 
 func (i *Interpreter) init() error {
+	if _, ok := i.Vars["root_dir"]; ok {
+		return fmt.Errorf("cannot set variable root_dir")
+	}
+	if i.Root == "" {
+		i.Root = "."
+	}
 	if i.Vars == nil {
-		i.Vars = make(map[string]string)
+		i.Vars = map[string]string{}
 	}
+	i.Vars["root_dir"] = i.Root
+	return nil
+}
 
-	var err error
-	root, ok := i.Vars["root_dir"]
-	if !ok {
-		root = "."
-	}
-	root, err = filepath.Abs(root)
+func (i *Interpreter) ExecFile(filename string, opts ...Option) error {
+	input, err := ioutil.ReadFile(filename)
 	if err != nil {
 		return err
 	}
-	i.Root = root
-	i.Vars["root_dir"] = i.Root
-	return nil
+
+	tree, err := i.Interpret(bytes.NewReader(input))
+	if err != nil {
+		return err
+	}
+
+	return tree.Create(opts...)
 }
 
 func (i *Interpreter) Interpret(r io.Reader) (*Tree, error) {

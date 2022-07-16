@@ -1,8 +1,14 @@
 package mktree
 
 import (
+	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+	"golang.org/x/sys/unix"
 )
 
 func Example_dir() {
@@ -73,12 +79,91 @@ func interpret(source string) {
 
 func interpretVars(source string, vars map[string]string) {
 	i := &Interpreter{
-		Root: "[example]",
 		Vars: vars,
+		Root: "[example]",
 	}
 	dir, err := i.Interpret(strings.NewReader(source))
 	if err != nil {
 		panic(err)
 	}
 	dir.DebugPrint(os.Stdout)
+}
+
+func TestExamples(t *testing.T) {
+	root, err := ioutil.TempDir("", "mktree")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(root)
+
+	i := &Interpreter{Root: root}
+	opts := []Option{
+		WithTemplateFunction("FileExists", func(_ string) bool { return false }),
+		WithTemplateFunction("FileContents", func(_ string) string { return "contents" }),
+		WithTemplateFunction("Now", func() string { return "2022-03-01" }),
+		WithTemplateFunction("User", func() string { return "test" }),
+	}
+
+	if err := i.ExecFile("examples/examples.tree", opts...); err != nil {
+		t.Fatal(err)
+	}
+
+	assertDir(t, filepath.Join(root, "example"), defaultDirMode)
+	assertFile(t, filepath.Join(root, "example.txt"), os.FileMode(0667), "")
+	assertFile(t, filepath.Join(root, "template_example.txt"), defaultFileMode, strings.TrimSpace(`
+[start:now_example]
+The current time is 2022-03-01
+[end:now_example]
+
+[start:user_example]
+The current user is test
+[end:user_example]
+
+[start:file_contents_example]
+The file "VERSION" contains "contents"
+[end:file_contents_example]
+
+[start:file_exists_example]
+The file "missing.txt" does not exist
+[end:file_exists_example]
+`))
+}
+
+func assertDir(t *testing.T, name string, mode os.FileMode) {
+	t.Helper()
+	stat, err := os.Stat(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !stat.IsDir() {
+		t.Fatalf("not a directory: %s", name)
+	}
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+	// mode = os.FileMode(uint32(umask) ^ uint32(mode))
+	// fmt.Printf("umask=%#o, mode=%#o\n", umask, mode)
+	if mode != stat.Mode() {
+		t.Fatalf("expected dir mode %#o but got %#o", mode, stat.Mode())
+	}
+}
+
+func assertFile(t *testing.T, name string, mode os.FileMode, contents string) {
+	t.Helper()
+	stat, err := os.Stat(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stat.IsDir() {
+		t.Fatalf("%s is a directory", name)
+	}
+	if stat.Mode() != mode {
+		t.Fatalf("expected file mode %#o but got %#o", mode, stat.Mode())
+	}
+	got, err := ioutil.ReadFile(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff(string(got), contents); diff != "" {
+		t.Fatalf("got contents diff (+got,-want):\n%s\n", diff)
+	}
 }

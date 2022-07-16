@@ -56,7 +56,7 @@ run: mktree
 	@echo "==== Running mktree ($(config)) ===="
 	$(TARGET)
 
-test:
+test: mktree
 	@echo "==== Testing mktree (test) ===="
 	go test $(GO_TEST_FLAGS) ./...
 

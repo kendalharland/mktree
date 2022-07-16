@@ -18,6 +18,8 @@
     	Allow undefined variables in the input
   -debug
     	Print the results without creating any files or directories
+  -root string
+    	Where to create the tree (default &#34;.&#34;)
   -vars value
     	A list of key-value pairs to substitute in the source while preprocessing
   -version
@@ -334,6 +336,8 @@
     	Allow undefined variables in the input
   -debug
     	Print the results without creating any files or directories
+  -root string
+    	Where to create the tree (default &#34;.&#34;)
   -vars value
     	A list of key-value pairs to substitute in the source while preprocessing
   -version
@@ -385,8 +389,9 @@ digit hexadecimal value such as <code>0755</code>.</p>
 <p>The path to a Go template file that this program should execute to generate the
 contents of the file.  The current user must have permission to read the template
 file. See the <a href="#templates">templates</a> section below for more information.</p>
-<pre><code>(file &quot;hello.txt&quot;
-    (@template &quot;hello.txt.tmpl&quot; &quot;first=Example&quot; &quot;last=User&quot;))
+<pre><code>; Generates template_example.txt by executing template_example.txt.tmpl
+(file "template_example.txt"
+    (@template "examples/template_example.txt.tmpl"))
 </code></pre>
 <p>And the file <code>hello_world.txt.tmpl</code>:</p>
 <pre><code>Hello, %(first) %(last)!
@@ -396,7 +401,7 @@ file. See the <a href="#templates">templates</a> section below for more informat
 </code></pre>
 <p><strong>File examples</strong></p>
 <pre><code>; Generates example.txt
-(file "example.txt")
+(file "example.txt" (@perms 0667))
 </code></pre>
 <h3 id="dir">dir</h3>
 <pre><code>(dir &lt;dirname&gt; [attributes... | children...])
@@ -410,9 +415,7 @@ and children may be given in any order, and directories may have any number of
 children.</p>
 <p><strong>Examples</strong></p>
 <pre><code>; Generates example/example.txt
-(dir "example"
-    (@perms 0666)
-    (file "example.txt"))
+(dir "example" (@perms 0777))
 </code></pre>
 <h4 id="perms-1">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
@@ -429,7 +432,7 @@ package.  mktree includes several built-in functions for use in templates, liste
 <p>Returns the contents of the file at the given path as a string. If the
 file does not exist an error is generated and template execution exits
 early.</p>
-<pre><code>The file "VERSION" contains "{{ FileContents "VERSION" }}
+<pre><code>The file "VERSION" contains "{{ FileContents "VERSION" }}"
 </code></pre>
 <h4 id="now">Now</h4>
 <p>Returns the current time in the format described in <a href="https://datatracker.ietf.org/doc/html/rfc3339">RFC-3339</a>.</p>
