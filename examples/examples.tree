@@ -1,11 +1,17 @@
-; start:basic_dir
+; [start:basic_dir]
 ; Generates example/example.txt
 (dir "example"
     (@perms 0666)
     (file "example.txt"))
-; end:basic_dir
+; [end:basic_dir]
 
-; start:basic_file
+; [start:basic_file]
 ; Generates example.txt
 (file "example.txt")
-; end:basic_file
+; [end:basic_file]
+
+; [start:file_template]
+; Generates template_example.txt by executing template_example.txt.tmpl
+(file "template_example.txt"
+    (@template "examples/template_example.txt.tmpl"))
+; [end:file_template]

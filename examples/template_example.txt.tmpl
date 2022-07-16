@@ -1,0 +1,15 @@
+[start:now_example]
+The current time is {{ Now }}
+[end:now_example]
+
+[start:user_example]
+The current user is {{ User }}
+[end:user_example]
+
+[start:file_contents_example]
+The file "VERSION" contains "{{ FileContents "VERSION" }}
+[end:file_contents_example]
+
+[start:file_exists_example]
+The file "missing.txt" does {{ if FileExists "missing.txt" }}exist{{- else}}not exist{{- end}}
+[end:file_exists_example]

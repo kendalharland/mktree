@@ -9,21 +9,21 @@ import (
 )
 
 var builtin = []Option{
-	WithTemplateFunction("FileExists", newFileExistsBuiltin),
-	WithTemplateFunction("FileContents", newFileContentsBuiltin),
+	WithTemplateFunction("FileExists", newFileExistsBuiltin()),
+	WithTemplateFunction("FileContents", newFileContentsBuiltin()),
 	WithTemplateFunction("Now", newNowBuiltin()),
 	WithTemplateFunction("User", newUserBuiltin()),
 }
 
-func newFileContentsBuiltin(filename string) func() (string, error) {
-	return func() (string, error) {
+func newFileContentsBuiltin() func(string) (string, error) {
+	return func(filename string) (string, error) {
 		contents, err := ioutil.ReadFile(filename)
 		return string(contents), err
 	}
 }
 
-func newFileExistsBuiltin(filename string) func() bool {
-	return func() bool {
+func newFileExistsBuiltin() func(string) bool {
+	return func(filename string) bool {
 		stat, err := os.Stat(filename)
 		if err != nil {
 			if !os.IsNotExist(err) {

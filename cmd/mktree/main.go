@@ -35,7 +35,6 @@ func parseFlags() *options {
 }
 
 type options struct {
-	root               string
 	debug              bool
 	version            bool
 	allowUndefinedVars bool
@@ -80,7 +79,6 @@ func execute(ctx context.Context) error {
 
 	i := &mktree.Interpreter{
 		Vars:               o.vars.Get().(map[string]string),
-		Root:               o.root,
 		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 

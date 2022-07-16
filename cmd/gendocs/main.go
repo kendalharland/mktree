@@ -157,18 +157,18 @@ func extractTagRegionFromFile(region, filename string) ([]byte, error) {
 	}
 	defer file.Close()
 
-	startLine := fmt.Sprintf("; start:%s", region)
-	endLine := fmt.Sprintf("; end:%s", region)
+	startLine := fmt.Sprintf("[start:%s]", region)
+	endLine := fmt.Sprintf("[end:%s]", region)
 	var inRegion bool
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if line == startLine {
+		if strings.HasSuffix(line, startLine) {
 			inRegion = true
 			continue
 		}
-		if line == endLine {
+		if strings.HasSuffix(line, endLine) {
 			break
 		}
 		if inRegion {
