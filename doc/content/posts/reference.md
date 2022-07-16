@@ -9,7 +9,7 @@ draft: false
 ## The command-line interface
 
 ```
-%(snippet cli-usage)
+%(content cli-usage)
 ```
 
 ## Concepts
@@ -116,7 +116,7 @@ Hello, Example User!
 __File examples__
 
 ```
-%(snippet tag:file_examples source_file:/interpreter_test.go)
+%(snippet file_examples interpreter_test.go)
 ```
 
 ### dir
@@ -137,7 +137,7 @@ children.
 __Examples__
 
 ```
-%(snippet tag:dir_examples source_file:/interpreter_test.go)
+%(snippet dir_examples interpreter_test.go)
 ```
 
 #### @perms
