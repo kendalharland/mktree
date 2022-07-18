@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+# [Releases]
+
+## [1.1.0] - 2022-07-18
 ### Added
 - Support for template execution in files.
 - Support for defining template funcs via 'Option' type.
@@ -12,8 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A 'Now' builtin.
 - A 'FileContents' builtin.
 - A 'FileExists' builtin.
-
-# [Releases]
 
 ## [1.0.0] - 2022-07-15
 ### Added
