@@ -243,7 +243,11 @@ func nextToken(p *Parser) {
 			readNumber(p)
 			return
 		}
-		readKeyword(p)
+		if isAlpha(peekChar(p.r)) {
+			readKeyword(p)
+			return
+		}
+		syntaxErr(p, "invalid character %s", string(peekChar(p.r)))
 		return
 	}
 }
@@ -270,7 +274,7 @@ func readComment(p *Parser) {
 // TODO: Handle escaped quotes.
 func readString(p *Parser) {
 	skipChar(p) // "
-	for !(isEOF(p.r) || peekChar(p.r) == '"') {
+	for !isEOF(p.r) && peekChar(p.r) != '"' {
 		nextChar(p)
 	}
 	makeToken(p, StringTokenKind)
@@ -385,13 +389,13 @@ func tokenContext(p *Parser, pos int) (int, int, string) {
 	if lineStart < 0 {
 		lineStart = 0
 	}
-	lineEnd := bytes.IndexByte(after, '\n')
-	if lineEnd < 0 {
+	lineEnd := len(before) + bytes.IndexByte(after, '\n')
+	if lineEnd >= len(p.s) {
 		lineEnd = len(p.s) - 1
 	}
 	lineSrc := string(p.s[lineStart:lineEnd])
 	line := bytes.Count(before, []byte{'\n'}) + 1
 	col := pos - lineStart
-	arrow := strings.Repeat("-", col) + "^"
+	arrow := strings.Repeat("-", col-1) + "^"
 	return line, col, lineSrc + "\n" + arrow
 }
