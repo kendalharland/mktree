@@ -30,10 +30,9 @@ func Interpret(r io.Reader) (*Tree, error) {
 }
 
 type Interpreter struct {
-	Root   string
-	Vars   map[string]string
-	Stderr io.Writer
-
+	Root               string
+	Vars               map[string]string
+	Stderr             io.Writer
 	AllowUndefinedVars bool
 }
 
@@ -56,17 +55,21 @@ func (i *Interpreter) ExecFile(filename string, opts ...Option) error {
 	if err != nil {
 		return err
 	}
-	return i.Exec(bytes.NewReader(input), opts...)
+	return i.Exec(bytes.NewReader(input), filename, opts...)
 }
 
-func (i *Interpreter) Exec(r io.Reader, opts ...Option) error {
+func (i *Interpreter) Exec(r io.Reader, filename string, opts ...Option) error {
 	t, err := i.Interpret(r)
 	if err != nil {
 		return err
 	}
 	// append builtins first so the user can override them.
 	opts = append(builtins(i), opts...)
-	return createTree(t, opts...)
+	sourceRoot := filepath.Dir(filename)
+	if sourceRoot == "" {
+		sourceRoot = "."
+	}
+	return createTree(t, sourceRoot, opts...)
 }
 
 func (i *Interpreter) Interpret(r io.Reader) (*Tree, error) {
@@ -99,8 +102,8 @@ func (i *Interpreter) InterpretFile(filename string) (*Tree, error) {
 	return i.Interpret(bytes.NewReader(input))
 }
 
-func createTree(t *Tree, opts ...Option) error {
-	ctx := &treeContext{}
+func createTree(t *Tree, sourceRoot string, opts ...Option) error {
+	ctx := &thread{sourceRoot: sourceRoot}
 	for _, o := range opts {
 		o.apply(ctx)
 	}

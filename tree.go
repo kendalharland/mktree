@@ -19,7 +19,7 @@ func (t *Tree) DebugPrint(w io.Writer) {
 	t.root.DebugPrint(w)
 }
 
-func (t *Tree) createDir(ctx *treeContext, d *Dir) error {
+func (t *Tree) createDir(ctx *thread, d *Dir) error {
 	umask := unix.Umask(0)
 	defer unix.Umask(umask)
 
@@ -40,7 +40,7 @@ func (t *Tree) createDir(ctx *treeContext, d *Dir) error {
 	return nil
 }
 
-func (t *Tree) createFile(ctx *treeContext, f *File) error {
+func (t *Tree) createFile(ctx *thread, f *File) error {
 	umask := unix.Umask(0)
 	defer unix.Umask(umask)
 
@@ -54,12 +54,13 @@ func (t *Tree) createFile(ctx *treeContext, f *File) error {
 	return ioutil.WriteFile(f.Name, []byte(contents), f.Perms)
 }
 
-func fileContents(ctx *treeContext, f *File) (string, error) {
+func fileContents(ctx *thread, f *File) (string, error) {
 	if len(f.Contents) > 0 {
 		return string(f.Contents), nil
 	}
 	if len(f.TemplateFilename) > 0 {
-		return execTemplateFile(f.TemplateFilename, ctx.templateFuncs)
+		filename := filepath.Join(ctx.sourceRoot, f.TemplateFilename)
+		return execTemplateFile(filename, ctx.templateFuncs)
 	}
 	return "", nil
 }
@@ -75,15 +76,4 @@ func execTemplateFile(filename string, funcMap template.FuncMap) (string, error)
 		return "", err
 	}
 	return contents.String(), nil
-}
-
-type treeContext struct {
-	templateFuncs map[string]interface{}
-}
-
-func (ctx *treeContext) addTemplateFunc(name string, f interface{}) {
-	if ctx.templateFuncs == nil {
-		ctx.templateFuncs = map[string]interface{}{}
-	}
-	ctx.templateFuncs[name] = f
 }

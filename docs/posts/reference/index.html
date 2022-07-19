@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
+    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var Year The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
               [-vars=&lt;name&gt;=&lt;value&gt;]
               &lt;source-file&gt;
 
@@ -320,6 +320,7 @@
             <li><a href="#now">Now</a></li>
             <li><a href="#user">User</a></li>
             <li><a href="#var">Var</a></li>
+            <li><a href="#year">Year</a></li>
           </ul>
         </li>
       </ul>
@@ -377,7 +378,7 @@ root level then the filename is evaluated relative to the <code>root_dir</code>.
 <pre><code>(@contents &lt;value&gt;)
 </code></pre>
 <p>Declares a string <!-- raw HTML omitted --> to use as the file contents. Attempting to set both <code>@contents</code> and
-<code>@template</code> on the same file results in an interpet error.</p>
+<code>@template</code> on the same file results in an error.</p>
 <h4 id="perms">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
 </code></pre>
@@ -388,9 +389,9 @@ such as <code>0755</code>.</p>
 <pre><code>(@template &lt;filename&gt; [variables...])
 </code></pre>
 <p>The path to a Go template file that this program should execute to generate the
-contents of the file. The current user must have permission to read the template
-file. Attempting to set both <code>@contents</code> and <code>@template</code> on the same file results in an
-interpet error.</p>
+contents of the file. The filename must be relative to the parent directory of the
+input source file and the current user must have permission to read it.  Attempting
+to set both <code>@contents</code> and <code>@template</code> on the same file results in an error.</p>
 <p>See the <a href="#template-files">templates</a> section below for more information about templates.</p>
 <h3 id="dir">dir</h3>
 <pre><code>(dir &lt;dirname&gt; [attributes... | children...])
@@ -410,7 +411,7 @@ have any number of children.</p>
 package. mktree includes several built-in functions for use in templates, listed below.</p>
 <pre><code>; Generates template_example.txt by executing template_example.txt.tmpl
 (file "template_example.txt"
-    (@template "examples/template_example.txt.tmpl"))
+    (@template "template_example.txt.tmpl"))
 </code></pre>
 <p>And the file <code>hello_world.txt.tmpl</code>:</p>
 <pre><code>Hello, %(first) %(last)!
@@ -441,6 +442,10 @@ cannot be determined.</p>
 <h4 id="var">Var</h4>
 <p>Returns the value of any builtin or command-line <a href="#variables">variable</a>.</p>
 <pre><code>%(my_var) = {{ Var "my_var" }}
+</code></pre>
+<h4 id="year">Year</h4>
+<p>Returns the current year.</p>
+<pre><code>The current year is {{ Year }}
 </code></pre>
 
   </main>

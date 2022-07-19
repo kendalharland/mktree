@@ -33,7 +33,7 @@ Language mktree uses a basic S-expression (&amp;ldquo;sexpr&amp;rdquo;) syntax t
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/reference/</guid>
-      <description>Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var The command-line interface %(content cli-usage) Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ). Variables are given on the command line using the -vars flag. Any leading or trailing whitespace around the variable&amp;rsquo;s name is stripped from the input source.</description>
+      <description>Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var Year The command-line interface %(content cli-usage) Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ). Variables are given on the command line using the -vars flag. Any leading or trailing whitespace around the variable&amp;rsquo;s name is stripped from the input source.</description>
     </item>
     
   </channel>

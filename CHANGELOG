@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A 'Var' builtin for reading command-line variables.
 - A 'Year' builtin to return the current year.
 
+### Changed
+- Template files are now resolved relative to the input source file
+
 ### Removed
 - Support for whitespace padding around variable names.
 

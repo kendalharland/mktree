@@ -248,6 +248,7 @@ func nextToken(p *Parser) {
 			return
 		}
 		syntaxErr(p, "invalid character %s", string(peekChar(p.r)))
+		skipChar(p)
 		return
 	}
 }

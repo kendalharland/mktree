@@ -70,7 +70,7 @@ __File attributes__
 ```
 
 Declares a string <value> to use as the file contents. Attempting to set both `@contents` and 
-`@template` on the same file results in an interpet error.
+`@template` on the same file results in an error.
 
 #### @perms
 
@@ -89,9 +89,9 @@ such as `0755`.
 ```
 
 The path to a Go template file that this program should execute to generate the
-contents of the file. The current user must have permission to read the template
-file. Attempting to set both `@contents` and `@template` on the same file results in an
-interpet error. 
+contents of the file. The filename must be relative to the parent directory of the
+input source file and the current user must have permission to read it.  Attempting
+to set both `@contents` and `@template` on the same file results in an error. 
 
 See the [templates](#template-files) section below for more information about templates.
 
@@ -181,4 +181,12 @@ Returns the value of any builtin or command-line [variable](#variables).
 
 ```
 %(snippet var_example examples/template_example.txt.tmpl)
+```
+
+#### Year
+
+Returns the current year.
+
+```
+%(snippet year_example examples/template_example.txt.tmpl)
 ```
