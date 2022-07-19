@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - A 'Var' builtin for reading command-line variables.
+- A 'Year' builtin to return the current year.
 
 ### Removed
 - Support for whitespace padding around variable names.

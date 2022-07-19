@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"strconv"
 	"time"
 )
 
@@ -13,6 +14,7 @@ func builtins(i *Interpreter) []Option {
 		WithTemplateFunction("FileExists", newFileExistsBuiltin()),
 		WithTemplateFunction("FileContents", newFileContentsBuiltin()),
 		WithTemplateFunction("Now", newNowBuiltin()),
+		WithTemplateFunction("Year", newYearBuiltin()),
 		WithTemplateFunction("User", newUserBuiltin()),
 		WithTemplateFunction("Var", newVarBuiltin(i.Vars)),
 	}
@@ -64,6 +66,10 @@ func newVarBuiltin(vars map[string]string) func(string) (string, error) {
 		}
 		return "", fmt.Errorf("variable %q is undefined", varname)
 	}
+}
+
+func newYearBuiltin() func() string {
+	return func() string { return strconv.Itoa(time.Now().Year()) }
 }
 
 func warn(format string, args ...interface{}) {
