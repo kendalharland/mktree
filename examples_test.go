@@ -89,6 +89,7 @@ func interpretVars(source string, vars map[string]string) {
 	dir.DebugPrint(os.Stdout)
 }
 
+// Executes examples/examples.tree and asserts the output is as expected.
 func TestExamples(t *testing.T) {
 	root, err := ioutil.TempDir("", "mktree")
 	if err != nil {
@@ -96,7 +97,10 @@ func TestExamples(t *testing.T) {
 	}
 	defer os.RemoveAll(root)
 
-	i := &Interpreter{Root: root}
+	i := &Interpreter{
+		Root: root,
+		Vars: map[string]string{"my_var": "test"},
+	}
 	opts := []Option{
 		WithTemplateFunction("FileExists", func(_ string) bool { return false }),
 		WithTemplateFunction("FileContents", func(_ string) string { return "contents" }),
@@ -126,6 +130,10 @@ The file "VERSION" contains "contents"
 [start:file_exists_example]
 The file "missing.txt" does not exist
 [end:file_exists_example]
+
+[start:var_example]
+%(my_var) = test
+[end:var_example]
 `))
 }
 

@@ -1,6 +1,7 @@
 package mktree
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -15,29 +16,7 @@ func preprocess(r io.Reader, vars map[string]string, allowUndefined bool) (io.Re
 		return nil, err
 	}
 
-	vs, err := getVars(input)
-	if err != nil {
-		return nil, err
-	}
-	if !allowUndefined {
-		for _, v := range vs {
-			if _, ok := vars[v]; !ok {
-				return nil, fmt.Errorf("undefined variable: %s", v)
-			}
-		}
-	}
-
-	output := string(input)
-	for o, n := range vars {
-		o = "%(" + o + ")"
-		output = strings.ReplaceAll(output, o, n)
-	}
-
-	return strings.NewReader(output), nil
-}
-
-func getVars(input []byte) ([]string, error) {
-	var vars []string
+	output := input
 
 	re := regexp.MustCompile(`%\([^)]*\)`)
 	matches := re.FindAll(input, -1)
@@ -46,7 +25,16 @@ func getVars(input []byte) ([]string, error) {
 		if m == "%()" {
 			return nil, errors.New("empty variable pattern '%()' is not allowed")
 		}
-		vars = append(vars, m[2:len(m)-1])
+
+		varname := m[2 : len(m)-1] // remove the surrounding %( and ).
+		varname = strings.TrimSpace(varname)
+		if value, ok := vars[varname]; !ok && !allowUndefined {
+			// Use quotes incase v contains leading or trailing whitespace.
+			return nil, fmt.Errorf("undefined variable: %q", varname)
+		} else {
+			output = bytes.ReplaceAll(output, []byte(m), []byte(value))
+		}
 	}
-	return vars, nil
+
+	return bytes.NewReader(output), nil
 }

@@ -8,11 +8,14 @@ import (
 	"time"
 )
 
-var builtins = []Option{
-	WithTemplateFunction("FileExists", newFileExistsBuiltin()),
-	WithTemplateFunction("FileContents", newFileContentsBuiltin()),
-	WithTemplateFunction("Now", newNowBuiltin()),
-	WithTemplateFunction("User", newUserBuiltin()),
+func builtins(i *Interpreter) []Option {
+	return []Option{
+		WithTemplateFunction("FileExists", newFileExistsBuiltin()),
+		WithTemplateFunction("FileContents", newFileContentsBuiltin()),
+		WithTemplateFunction("Now", newNowBuiltin()),
+		WithTemplateFunction("User", newUserBuiltin()),
+		WithTemplateFunction("Var", newVarBuiltin(i.Vars)),
+	}
 }
 
 func newFileContentsBuiltin() func(string) (string, error) {
@@ -52,6 +55,15 @@ func newUserBuiltin() func() string {
 		}
 	}
 	return func() string { return u }
+}
+
+func newVarBuiltin(vars map[string]string) func(string) (string, error) {
+	return func(varname string) (string, error) {
+		if v, ok := vars[varname]; ok {
+			return v, nil
+		}
+		return "", fmt.Errorf("variable %q is undefined", varname)
+	}
 }
 
 func warn(format string, args ...interface{}) {

@@ -15,16 +15,18 @@ draft: false
 ### Variables
 
 Variables are given as command-line arguments and may appear anywhere in the source
-file. They are surrounded by `%(` and `)` and replaced in the source using string substitution
-during a preprocessing step. This happens before the input source is interpreted, meaning
-variables are not part of the mktree grammar.
+file. They are surrounded by `%(` and `)`.  Variables are given on the command line using
+the `-vars` flag. Any leading or trailing whitespace around the variable's name is stripped
+from the input source.
+
+Variables are replaced in the source using string substitution during a preprocessing step. This happens before the input source is interpreted, meaning variables are not part of the mktree grammar.
 
 __Example__
 
 Given a file `layout.tree` with the following contents:
 
 ```
-(file "%(filename)")
+(file "%( filename   )")
 ```
 
 This command will generate the file `example.txt`:
@@ -171,4 +173,12 @@ cannot be determined.
 
 ```
 %(snippet user_example examples/template_example.txt.tmpl)
+```
+
+#### Var
+
+Returns the value of any builtin or command-line [variable](#variables).
+
+```
+%(snippet var_example examples/template_example.txt.tmpl)
 ```

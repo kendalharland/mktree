@@ -19,15 +19,6 @@ func (t *Tree) DebugPrint(w io.Writer) {
 	t.root.DebugPrint(w)
 }
 
-func (t *Tree) Create(opts ...Option) error {
-	ctx := &treeContext{}
-	// append builtins first so the user can override them.
-	for _, o := range append(builtins, opts...) {
-		o.apply(ctx)
-	}
-	return t.createDir(ctx, t.root)
-}
-
 func (t *Tree) createDir(ctx *treeContext, d *Dir) error {
 	umask := unix.Umask(0)
 	defer unix.Umask(umask)

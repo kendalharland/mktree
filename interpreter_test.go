@@ -131,6 +131,18 @@ func TestInterpreter_Interpret(t *testing.T) {
 				&File{Name: "[test_root]/test/a", Perms: defaultFileMode},
 			},
 		},
+		{
+			name: "var_whitespace_padding_is_stripped",
+			vars: map[string]string{"my_var": "value"},
+			source: `
+			(file "a" (@contents "%(  my_var     )"))
+			(file "b" (@contents "%(my_var)"))
+			`,
+			want: []interface{}{
+				&File{Name: "[test_root]/a", Contents: []byte("value"), Perms: defaultFileMode},
+				&File{Name: "[test_root]/b", Contents: []byte("value"), Perms: defaultFileMode},
+			},
+		},
 		// Error cases.
 		{
 			name:    "file_missing_name",

@@ -30,10 +30,11 @@ func Interpret(r io.Reader) (*Tree, error) {
 }
 
 type Interpreter struct {
-	Root               string
-	Vars               map[string]string
+	Root   string
+	Vars   map[string]string
+	Stderr io.Writer
+
 	AllowUndefinedVars bool
-	Stderr             io.Writer
 }
 
 func (i *Interpreter) init() error {
@@ -55,13 +56,17 @@ func (i *Interpreter) ExecFile(filename string, opts ...Option) error {
 	if err != nil {
 		return err
 	}
+	return i.Exec(bytes.NewReader(input), opts...)
+}
 
-	tree, err := i.Interpret(bytes.NewReader(input))
+func (i *Interpreter) Exec(r io.Reader, opts ...Option) error {
+	t, err := i.Interpret(r)
 	if err != nil {
 		return err
 	}
-
-	return tree.Create(opts...)
+	// append builtins first so the user can override them.
+	opts = append(builtins(i), opts...)
+	return createTree(t, opts...)
 }
 
 func (i *Interpreter) Interpret(r io.Reader) (*Tree, error) {
@@ -84,6 +89,22 @@ func (i *Interpreter) Interpret(r io.Reader) (*Tree, error) {
 	}
 
 	return &Tree{root}, nil
+}
+
+func (i *Interpreter) InterpretFile(filename string) (*Tree, error) {
+	input, err := ioutil.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+	return i.Interpret(bytes.NewReader(input))
+}
+
+func createTree(t *Tree, opts ...Option) error {
+	ctx := &treeContext{}
+	for _, o := range opts {
+		o.apply(ctx)
+	}
+	return t.createDir(ctx, t.root)
 }
 
 func evalConfig(c *parse.Config, root *Dir) error {

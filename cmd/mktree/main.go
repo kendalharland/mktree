@@ -1,11 +1,9 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -74,26 +72,22 @@ func execute(_ context.Context) error {
 		return nil
 	}
 
-	input, err := ioutil.ReadFile(flag.Arg(0))
-	if err != nil {
-		return err
-	}
-
 	i := &mktree.Interpreter{
 		Vars:               o.vars.Get().(map[string]string),
 		Root:               o.root,
 		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 
-	tree, err := i.Interpret(bytes.NewReader(input))
-	if err != nil {
-		return err
-	}
+	sourceFile := flag.Arg(0)
 
 	if o.debug {
+		tree, err := i.InterpretFile(sourceFile)
+		if err != nil {
+			return err
+		}
 		tree.DebugPrint(os.Stdout)
 		return nil
 	}
 
-	return tree.Create()
+	return i.ExecFile(flag.Arg(0))
 }

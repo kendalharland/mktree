@@ -13,3 +13,7 @@ The file "VERSION" contains "{{ FileContents "VERSION" }}"
 [start:file_exists_example]
 The file "missing.txt" does {{ if FileExists "missing.txt" }}exist{{- else}}not exist{{- end}}
 [end:file_exists_example]
+
+[start:var_example]
+%(my_var) = {{ Var "my_var" }}
+[end:var_example]

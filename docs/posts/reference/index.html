@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
+    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
               [-vars=&lt;name&gt;=&lt;value&gt;]
               &lt;source-file&gt;
 
@@ -24,7 +24,7 @@
     	A list of key-value pairs to substitute in the source while preprocessing
   -version
     	Print the version and exit
- Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ) and replaced in the source using string substitution during a preprocessing step. This happens before the input source is interpreted, meaning variables are not part of the mktree grammar.">
+ Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ). Variables are given on the command line using the -vars flag. Any leading or trailing whitespace around the variable’s name is stripped from the input source.">
   
 
   <link rel="apple-touch-icon" sizes="180x180" href="/mktree/mktree/apple-touch-icon.png">
@@ -319,6 +319,7 @@
             <li><a href="#filecontents">FileContents</a></li>
             <li><a href="#now">Now</a></li>
             <li><a href="#user">User</a></li>
+            <li><a href="#var">Var</a></li>
           </ul>
         </li>
       </ul>
@@ -345,12 +346,13 @@
 </code></pre>
 <h3 id="variables">Variables</h3>
 <p>Variables are given as command-line arguments and may appear anywhere in the source
-file. They are surrounded by <code>%(</code> and <code>)</code> and replaced in the source using string substitution
-during a preprocessing step. This happens before the input source is interpreted, meaning
-variables are not part of the mktree grammar.</p>
+file. They are surrounded by <code>%(</code> and <code>)</code>.  Variables are given on the command line using
+the <code>-vars</code> flag. Any leading or trailing whitespace around the variable&rsquo;s name is stripped
+from the input source.</p>
+<p>Variables are replaced in the source using string substitution during a preprocessing step. This happens before the input source is interpreted, meaning variables are not part of the mktree grammar.</p>
 <p><strong>Example</strong></p>
 <p>Given a file <code>layout.tree</code> with the following contents:</p>
-<pre><code>(file &quot;%(filename)&quot;)
+<pre><code>(file &quot;%( filename   )&quot;)
 </code></pre>
 <p>This command will generate the file <code>example.txt</code>:</p>
 <pre><code>mktree layout.tree -vars=filename=example.txt
@@ -435,6 +437,10 @@ early.</p>
 <p>Returns the name of the current User, or the empty string if the current User&rsquo;s name
 cannot be determined.</p>
 <pre><code>The current user is {{ User }}
+</code></pre>
+<h4 id="var">Var</h4>
+<p>Returns the value of any builtin or command-line <a href="#variables">variable</a>.</p>
+<pre><code>%(my_var) = {{ Var "my_var" }}
 </code></pre>
 
   </main>
