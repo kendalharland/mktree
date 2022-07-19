@@ -134,6 +134,10 @@ The file "missing.txt" does not exist
 [start:var_example]
 %(my_var) = test
 [end:var_example]
+
+[start:year_example]
+The current year is 2022
+[end:year_example]
 `))
 }
 

@@ -11,5 +11,5 @@
 ; [start:template_example]
 ; Generates template_example.txt by executing template_example.txt.tmpl
 (file "template_example.txt"
-    (@template "examples/template_example.txt.tmpl"))
+    (@template "template_example.txt.tmpl"))
 ; [end:template_example]

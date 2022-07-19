@@ -17,3 +17,7 @@ The file "missing.txt" does {{ if FileExists "missing.txt" }}exist{{- else}}not 
 [start:var_example]
 %(my_var) = {{ Var "my_var" }}
 [end:var_example]
+
+[start:year_example]
+The current year is {{ Year }}
+[end:year_example]

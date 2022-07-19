@@ -1,0 +1,36 @@
+PROJECTS := {{ Var "project_name" }}
+TARGET := {{ Var "project_name" }}
+
+INCLUDES += -I ./src/include
+ALL_CFLAGS += $(INCLUDES) -o $(TARGET)
+
+.PHONY: all clean format run help
+
+all: $(PROJECTS)
+
+clean:
+	@echo "==== Removing {{ Var "project_name" }} ===="
+	rm -rf $(TARGET)
+
+format:
+	@echo "==== Formatting {{ Var "project_name" }} source code ===="
+	find . -regex '.*\.\(c\|h\)' -exec clang-format -style=file -i {} \;
+
+{{ Var "project_name" }}: clean
+	@echo "==== Building {{ Var "project_name" }} ===="
+	$(CC) $(ALL_CFLAGS) ./src/main.c
+
+run: {{ Var "project_name" }}
+	@echo "==== Running {{ Var "project_name" }} ===="
+	./{{ Var "project_name" }} 
+
+help:
+	@echo "Usage: make [target]"
+	@echo ""
+	@echo "TARGETS:"
+	@echo "   all (default)"
+	@echo "   clean"
+	@echo "   format"
+	@echo "   {{ Var "project_name" }}"
+	@echo "   run"
+	@echo ""

@@ -1,0 +1,11 @@
+; Generates a tree of boilerplate files for a new clang C application
+(dir "%(project_name)"
+    (file "LICENSE"    (@template "templates/LICENSE.tmpl"))
+    (file "README.md"  (@template "templates/README.md.tmpl"))
+    (file "Makefile"   (@template "templates/Makefile.tmpl"))
+    (file ".gitignore" (@template "templates/gitignore.tmpl"))
+    (file ".clang-format" (@template "templates/clang-format.tmpl"))
+    (dir "src"
+        (dir "include")
+        (file "main.c" (@template "templates/main.c.tmpl"))))
+    
