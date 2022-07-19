@@ -78,10 +78,10 @@ func execute(_ context.Context) error {
 		AllowUndefinedVars: o.allowUndefinedVars,
 	}
 
-	sourceFile := flag.Arg(0)
+	filename := flag.Arg(0)
 
 	if o.debug {
-		tree, err := i.InterpretFile(sourceFile)
+		tree, err := i.InterpretFile(filename)
 		if err != nil {
 			return err
 		}
@@ -89,5 +89,5 @@ func execute(_ context.Context) error {
 		return nil
 	}
 
-	return i.ExecFile(flag.Arg(0))
+	return i.ExecFile(filename)
 }

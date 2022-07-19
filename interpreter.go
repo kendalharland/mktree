@@ -9,21 +9,18 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"text/template"
 
 	"github.com/kendalharland/mktree/parse"
+	"golang.org/x/sys/unix"
 )
+
+var ErrInterpret = errors.New("interpet error")
 
 const (
 	defaultDirMode  = os.FileMode(0777) | os.ModeDir
 	defaultFileMode = os.FileMode(0666)
 )
-
-func defaultRootDir(name string) *Dir {
-	return &Dir{
-		Name:  name,
-		Perms: defaultDirMode,
-	}
-}
 
 func Interpret(r io.Reader) (*Tree, error) {
 	return (&Interpreter{}).Interpret(r)
@@ -107,10 +104,17 @@ func createTree(t *Tree, sourceRoot string, opts ...Option) error {
 	for _, o := range opts {
 		o.apply(ctx)
 	}
-	return t.createDir(ctx, t.root)
+	return createDir(ctx, t.root)
 }
 
-func evalConfig(c *parse.Config, root *Dir) error {
+func defaultRootDir(name string) *dir {
+	return &dir{
+		Name:  name,
+		Perms: defaultDirMode,
+	}
+}
+
+func evalConfig(c *parse.Config, root *dir) error {
 	for _, e := range c.SExprs {
 		if err := evalDirChild(root, e); err != nil {
 			return err
@@ -119,7 +123,7 @@ func evalConfig(c *parse.Config, root *Dir) error {
 	return nil
 }
 
-func evalDirChild(parent *Dir, e *parse.SExpr) (err error) {
+func evalDirChild(parent *dir, e *parse.SExpr) (err error) {
 	switch e.Literal.Token.Kind {
 	case parse.AttributeTokenKind:
 		err = evalAttr(parent, e)
@@ -133,7 +137,7 @@ func evalDirChild(parent *Dir, e *parse.SExpr) (err error) {
 	return err
 }
 
-func evalFileChild(parent *File, e *parse.SExpr) (err error) {
+func evalFileChild(parent *file, e *parse.SExpr) (err error) {
 	switch e.Literal.Token.Kind {
 	case parse.AttributeTokenKind:
 		err = evalAttr(parent, e)
@@ -143,7 +147,7 @@ func evalFileChild(parent *File, e *parse.SExpr) (err error) {
 	return err
 }
 
-func evalDir(parent *Dir, e *parse.SExpr) error {
+func evalDir(parent *dir, e *parse.SExpr) error {
 	if len(e.Args) < 1 {
 		return interpretError("expected a directory name")
 	}
@@ -153,7 +157,7 @@ func evalDir(parent *Dir, e *parse.SExpr) error {
 		return err
 	}
 
-	d := &Dir{Name: filepath.Join(parent.Name, name)}
+	d := &dir{Name: filepath.Join(parent.Name, name)}
 	for _, arg := range e.Args[1:] {
 		if err := evalDirChild(d, arg.SExpr); err != nil {
 			return err
@@ -177,16 +181,16 @@ func evalAttr(owner interface{}, e *parse.SExpr) error {
 
 func setAttr(owner interface{}, name string, args []*parse.Arg) error {
 	switch t := owner.(type) {
-	case *File:
+	case *file:
 		return t.setAttribute(name, args)
-	case *Dir:
+	case *dir:
 		return t.setAttribute(name, args)
 	default:
 		panic(fmt.Errorf("setAttr(%q) called on owner of type `%T` which does not have attributes", name, t))
 	}
 }
 
-func evalFile(parent *Dir, e *parse.SExpr) error {
+func evalFile(parent *dir, e *parse.SExpr) error {
 	if len(e.Args) < 1 {
 		return interpretError("expected a filename")
 	}
@@ -198,7 +202,7 @@ func evalFile(parent *Dir, e *parse.SExpr) error {
 
 	name = filepath.Join(parent.Name, name)
 	name = filepath.Clean(name)
-	f := &File{
+	f := &file{
 		Name:  name,
 		Perms: defaultFileMode,
 	}
@@ -242,7 +246,66 @@ func evalFileMode(a *parse.Arg) (os.FileMode, error) {
 	return os.FileMode(uint32(n)), nil
 }
 
-var ErrInterpret = errors.New("interpet error")
+func createDir(ctx *thread, d *dir) error {
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+
+	if err := os.MkdirAll(d.Name, d.Perms); err != nil {
+		return err
+	}
+	for _, child := range d.Dirs {
+		if err := createDir(ctx, child); err != nil {
+			return err
+		}
+	}
+	for _, child := range d.Files {
+		if err := createFile(ctx, child); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createFile(ctx *thread, f *file) error {
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+
+	contents, err := fileContents(ctx, f)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(f.Name), defaultDirMode); err != nil {
+		return err
+	}
+	return ioutil.WriteFile(f.Name, []byte(contents), f.Perms)
+}
+
+func fileContents(ctx *thread, f *file) (string, error) {
+	if len(f.Contents) > 0 {
+		return string(f.Contents), nil
+	}
+	if len(f.TemplateFilename) > 0 {
+		filename := filepath.Join(ctx.sourceRoot, f.TemplateFilename)
+		return execTemplateFile(filename, ctx.templateFuncs)
+	}
+	return "", nil
+}
+
+func execTemplateFile(filename string, funcMap template.FuncMap) (string, error) {
+	name := filepath.Base(filename)
+	tmpl, err := template.New(name).Funcs(funcMap).ParseFiles(filename)
+	if err != nil {
+		return "", err
+	}
+	var contents bytes.Buffer
+	if err := tmpl.Execute(&contents, nil); err != nil {
+		return "", err
+	}
+	return contents.String(), nil
+}
+
+// Errors.
 
 func interpretError(format string, args ...interface{}) error {
 	return parse.Errorf(ErrInterpret, format, args...)

@@ -32,8 +32,8 @@ func TestInterpreter_Interpret(t *testing.T) {
             (file "b")
 			`,
 			want: []interface{}{
-				&Dir{Name: "[test_root]/a", Perms: defaultDirMode},
-				&File{Name: "[test_root]/b", Perms: defaultFileMode},
+				&dir{Name: "[test_root]/a", Perms: defaultDirMode},
+				&file{Name: "[test_root]/b", Perms: defaultFileMode},
 			},
 		},
 		// Dir
@@ -41,29 +41,29 @@ func TestInterpreter_Interpret(t *testing.T) {
 			name:   "dir",
 			source: `(dir "a")`,
 			want: []interface{}{
-				&Dir{Name: "[test_root]/a", Perms: defaultDirMode},
+				&dir{Name: "[test_root]/a", Perms: defaultDirMode},
 			},
 		},
 		{
 			name:   "dir_and_file",
 			source: `(dir "a") (file "b")`,
 			want: []interface{}{
-				&Dir{Name: "[test_root]/a", Perms: defaultDirMode},
-				&File{Name: "[test_root]/b", Perms: defaultFileMode},
+				&dir{Name: "[test_root]/a", Perms: defaultDirMode},
+				&file{Name: "[test_root]/b", Perms: defaultFileMode},
 			},
 		},
 		{
 			name:   "dir_with_perms",
 			source: `(dir "a" (@perms 0555))`,
 			want: []interface{}{
-				&Dir{Name: "[test_root]/a", Perms: os.FileMode(0555) | os.ModeDir},
+				&dir{Name: "[test_root]/a", Perms: os.FileMode(0555) | os.ModeDir},
 			},
 		},
 		{
 			name:   "dir_with_file",
 			source: `(dir "a" (@perms 0555))`,
 			want: []interface{}{
-				&Dir{Name: "[test_root]/a", Perms: os.FileMode(0555) | os.ModeDir},
+				&dir{Name: "[test_root]/a", Perms: os.FileMode(0555) | os.ModeDir},
 			},
 		},
 		// File
@@ -71,28 +71,28 @@ func TestInterpreter_Interpret(t *testing.T) {
 			name:   "file",
 			source: `(file "a")`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a", Perms: defaultFileMode},
+				&file{Name: "[test_root]/a", Perms: defaultFileMode},
 			},
 		},
 		{
 			name:   "file_with_perms",
 			source: `(file "a" (@perms 0712))`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a", Perms: os.FileMode(0712)},
+				&file{Name: "[test_root]/a", Perms: os.FileMode(0712)},
 			},
 		},
 		{
 			name:   "file_with_contents",
 			source: `(file "a" (@contents "this is a test"))`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a", Contents: []byte("this is a test"), Perms: defaultFileMode},
+				&file{Name: "[test_root]/a", Contents: []byte("this is a test"), Perms: defaultFileMode},
 			},
 		},
 		{
 			name:   "file_with_template",
 			source: `(file "a" (@template "template.tmpl"))`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a", TemplateFilename: "template.tmpl", Perms: defaultFileMode},
+				&file{Name: "[test_root]/a", TemplateFilename: "template.tmpl", Perms: defaultFileMode},
 			},
 		},
 		{
@@ -101,8 +101,8 @@ func TestInterpreter_Interpret(t *testing.T) {
 			source: `(file "/a")
 			         (dir  "/b" (file "/c"))`,
 			want: []interface{}{
-				&File{Name: "/root/a", Perms: defaultFileMode},
-				&Dir{Name: "/root/b", Perms: defaultDirMode, Files: []*File{
+				&file{Name: "/root/a", Perms: defaultFileMode},
+				&dir{Name: "/root/b", Perms: defaultDirMode, Files: []*file{
 					{Name: "/root/b/c", Perms: defaultFileMode},
 				}},
 			},
@@ -112,15 +112,15 @@ func TestInterpreter_Interpret(t *testing.T) {
 			source: `(file "///////a/b///c/////d")
 			         (dir "///d/e///f///")`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a/b/c/d", Perms: defaultFileMode},
-				&Dir{Name: "[test_root]/d/e/f", Perms: defaultDirMode},
+				&file{Name: "[test_root]/a/b/c/d", Perms: defaultFileMode},
+				&dir{Name: "[test_root]/d/e/f", Perms: defaultDirMode},
 			},
 		},
 		{
 			name:   "root_dir_var_is_set_to_root_by_default",
 			source: `(file "%(root_dir)/a")`,
 			want: []interface{}{
-				&File{Name: "[test_root]/[test_root]/a", Perms: defaultFileMode},
+				&file{Name: "[test_root]/[test_root]/a", Perms: defaultFileMode},
 			},
 		},
 		{
@@ -128,7 +128,7 @@ func TestInterpreter_Interpret(t *testing.T) {
 			vars:   map[string]string{"root_dir": "test"},
 			source: `(file "%(root_dir)/a")`,
 			want: []interface{}{
-				&File{Name: "[test_root]/test/a", Perms: defaultFileMode},
+				&file{Name: "[test_root]/test/a", Perms: defaultFileMode},
 			},
 		},
 		{
@@ -139,8 +139,8 @@ func TestInterpreter_Interpret(t *testing.T) {
 			(file "b" (@contents "%(my_var)"))
 			`,
 			want: []interface{}{
-				&File{Name: "[test_root]/a", Contents: []byte("value"), Perms: defaultFileMode},
-				&File{Name: "[test_root]/b", Contents: []byte("value"), Perms: defaultFileMode},
+				&file{Name: "[test_root]/a", Contents: []byte("value"), Perms: defaultFileMode},
+				&file{Name: "[test_root]/b", Contents: []byte("value"), Perms: defaultFileMode},
 			},
 		},
 		// Error cases.
@@ -241,13 +241,13 @@ func TestInterpreter_Interpret(t *testing.T) {
 	}
 }
 
-func mkdir(root string, entries []interface{}) (*Dir, error) {
+func mkdir(root string, entries []interface{}) (*dir, error) {
 	d := defaultRootDir(root)
 	for i, e := range entries {
 		switch t := e.(type) {
-		case *File:
+		case *file:
 			d.Files = append(d.Files, t)
-		case *Dir:
+		case *dir:
 			d.Dirs = append(d.Dirs, t)
 		default:
 			return nil, fmt.Errorf("value %v of type %#T at position %d is not a *File or a *Dir", e, e, i)

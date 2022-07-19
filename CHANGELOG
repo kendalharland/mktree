@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 - Support for whitespace padding around variable names.
+- File and Dir types are now package internal.
 
 # [Releases]
 
