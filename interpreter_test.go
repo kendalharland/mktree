@@ -164,6 +164,11 @@ func TestInterpreter_Interpret(t *testing.T) {
 			wantErr: ErrInterpret,
 		},
 		{
+			name:    "file_perms_invalid_file_mode_number",
+			source:  `(file (@perms 555))`,
+			wantErr: ErrInterpret,
+		},
+		{
 			name:    "file_template_is_mutually_exclusive_with_contents",
 			source:  `(file "a" (@content "this is a") (@template "a.tmpl"))`,
 			wantErr: ErrInterpret,

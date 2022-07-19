@@ -10,7 +10,7 @@ PROJECTS := mktree docs
 TARGET := ./bin/mktree
 VERSION := $(shell cat VERSION)
 
-.PHONY: all bump-patch bump-minor bump-major clean docs docs-serve format release run test help
+.PHONY: all bump-patch bump-minor bump-major clean docs docs-preview format release run test help
 
 all: $(PROJECTS)
 
@@ -34,7 +34,7 @@ docs: mktree
 	@echo "=== Regenerating documentation ==="
 	tools/docs.sh -b
 
-docs-serve: mktree
+docs-preview: mktree
 	@echo "=== Serving documentation ==="
 	tools/docs.sh -s
 
@@ -70,7 +70,7 @@ help:
 	@echo "   bump-major"
 	@echo "   clean"
 	@echo "   docs"
-	@echo "   docs-serve"
+	@echo "   docs-preview"
 	@echo "   run"
 	@echo "   test"
 	@echo ""

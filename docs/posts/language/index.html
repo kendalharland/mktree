@@ -10,10 +10,9 @@
 
   
     
-    <meta name="description" content="Contents Introduction Language Strings Numbers Attributes Filesystem entities Comments Variables Grammar Introduction This page describes the design and behavior of the language.
-Language mktree uses a basic S-expression (“sexpr”) syntax to describe a tree of filesystem entities to create. The types are:
-Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strings are enclosed in double quotes. There are no supported escape sequences.
-&#34;This is a string.&#34; Numbers Numbers are parsed as unsigned integers having no bit-width.">
+    <meta name="description" content="Contents Introduction Preprocessing Variables Language Strings Numbers Attributes Filesystem entities Comments Grammar Introduction This page describes the design and behavior of the language.
+Preprocessing Variables Variables are alphabetic literals surrounded by %( and ). They are not interpreted. Instead they are replaced in the source using string substitution. For more information about variables see the Variables section of the reference.
+Language mktree uses a basic S-expression (“sexpr”) syntax to describe a tree of filesystem entities to create.">
   
 
   <link rel="apple-touch-icon" sizes="180x180" href="/mktree/mktree/apple-touch-icon.png">
@@ -275,6 +274,11 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
     <nav id="TableOfContents">
   <ul>
     <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#preprocessing">Preprocessing</a>
+      <ul>
+        <li><a href="#variables">Variables</a></li>
+      </ul>
+    </li>
     <li><a href="#language">Language</a>
       <ul>
         <li><a href="#strings">Strings</a></li>
@@ -282,7 +286,6 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
         <li><a href="#attributes">Attributes</a></li>
         <li><a href="#filesystem-entities">Filesystem entities</a></li>
         <li><a href="#comments">Comments</a></li>
-        <li><a href="#variables">Variables</a></li>
       </ul>
     </li>
     <li><a href="#grammar">Grammar</a></li>
@@ -291,6 +294,12 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
 </div>
 <h2 id="introduction">Introduction</h2>
 <p>This page describes the design and behavior of the language.</p>
+<h2 id="preprocessing">Preprocessing</h2>
+<h3 id="variables">Variables</h3>
+<p>Variables are alphabetic literals surrounded by <code>%(</code> and <code>)</code>. They are not
+interpreted. Instead they are replaced in the source using string substitution.
+For more information about variables see the <a href="/mktree/posts/reference/#variables">Variables</a>
+section of the <a href="/mktree/posts/reference/">reference</a>.</p>
 <h2 id="language">Language</h2>
 <p>mktree uses a basic <a href="https://en.wikipedia.org/wiki/S-expression">S-expression</a> (&ldquo;sexpr&rdquo;) syntax to describe a tree of filesystem
 entities to create. The types are:</p>
@@ -305,30 +314,23 @@ entities to create. The types are:</p>
 <pre><code>&quot;This is a string.&quot;
 </code></pre>
 <h3 id="numbers">Numbers</h3>
-<p>Numbers are parsed as unsigned integers having no bit-width. The bit-width is determined
-when the number is evaluated and depends on the context. For example, when the number
-appears as <code>@perm</code> attribute on a directory or file, it is evaluated as an unsigned 32-bit
-integer and used as a file mode.</p>
+<p>Numbers are parsed as unsigned integers. The bit-width is determined by the context
+when the number is evaluated. For example, when the number appears as <code>@perm</code> attribute
+on a directory or file, it is evaluated as an unsigned 32-bit integer and used as a file
+mode.</p>
 <h3 id="attributes">Attributes</h3>
 <p>Attributes begin with <code>@</code> and are used to assign metadata to filesystem entities. Each
-entity takes different attributes. For example, <code>file</code> uses the <code>@contents</code> attribute to
-specify the data it holds, but it&rsquo;s invalid to set <code>@contents</code> on <code>dir</code>.</p>
+entity supports different attributes. For example, the <code>@contents</code> attribute is used to
+set the contents of a <code>file</code>, but it&rsquo;s invalid to set <code>@contents</code> on <code>dir</code>.</p>
 <h3 id="filesystem-entities">Filesystem entities</h3>
-<p>Filesystem entities such as directories and files are declared as sexprs.
-Each entity requires a name and may accept several attributes unique to the entity
-type. For more information about each kind of entity see the
-<a href="/mktree/posts/reference/#file-system-entities">Filesystem entities</a>
-section of the <a href="/mktree/posts/reference/">reference</a>.</p>
+<p>Filesystem entities such as directories and files are declared as sexprs. Each entity
+requires a name and may accept several attributes unique to the entity type. For more
+information about each kind of entity see the <a href="/mktree/posts/reference/#file-system-entities">Filesystem entities</a> section of the <a href="/mktree/posts/reference/">reference</a>.</p>
 <h3 id="comments">Comments</h3>
 <p>Comments begin with &lsquo;;&rsquo; and span to the end of the current line.
 Comments may appear anywhere the source, including in the middle of sexprs.</p>
 <pre><code>; This is a comment
 </code></pre>
-<h3 id="variables">Variables</h3>
-<p>Variables are alphabetic literals surrounded by <code>%(</code> <code>)</code>. They are not
-interpreted. Instead they are inserted into the source using basic string
-substitution. For more information about variables see the
-<a href="/mktree/posts/reference/#variables">Variables</a> section of the <a href="/mktree/posts/reference/">reference</a>.</p>
 <h2 id="grammar">Grammar</h2>
 <pre><code>config    = stmt*
 stmt      = comment

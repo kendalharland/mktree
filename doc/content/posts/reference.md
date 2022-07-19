@@ -12,16 +12,16 @@ draft: false
 %(content cli-usage)
 ```
 
-## Concepts
-
 ### Variables
 
-Variables may appear anywhere in the source file and must be surrounded by
-`%(` and `)`.  Variables are inserted using simple string substitution by a
-preprocessing step before code is interpreted. This means that variables are
-not part of the mktree grammar.
+Variables are given as command-line arguments and may appear anywhere in the source
+file. They are surrounded by `%(` and `)` and replaced in the source using string substitution
+during a preprocessing step. This happens before the input source is interpreted, meaning
+variables are not part of the mktree grammar.
 
-Example:  Given a file `layout.tree` with the following contents:
+__Example__
+
+Given a file `layout.tree` with the following contents:
 
 ```
 (file "%(filename)")
@@ -39,9 +39,10 @@ mktree layout.tree -vars=filename=example.txt
 
 The variable `%(root_dir)` is always defined. It is the absolute path to the
 directory where mktree will create all other files and directories. The caller
-can set `root_dir` like any other variable using mktree's `-var` flag.
+can set `root_dir` using the CLI's `-root` flag.  It is an error to attempt to
+set the root dir by passing `-vars=root_dir=...`
 
-## Filesystem entities
+## API Reference
 
 ### file
 
@@ -51,12 +52,14 @@ can set `root_dir` like any other variable using mktree's `-var` flag.
 
 Generates a regular file.
 
-The filename must be a valid filename for the current platform. The filename is
-evaluated relative to the root of its parent directory even if it starts with
-one or more leading slashes. If the file is declared at the root level then the
-filename is evaluated relative to the root directory.
+The filename must be a valid filename for the current platform. It is
+evaluated as being relative to the root of its parent directory even if
+it contains one or more leading slashes. If the file is declared at the
+root level then the filename is evaluated relative to the `root_dir`.
+
 
 __File attributes__
+
 
 #### @contents
 
@@ -64,9 +67,8 @@ __File attributes__
 (@contents <value>)
 ```
 
-Declares a string <value> to write to the the file. This is mutually exclusive
-with `@template`; Attempting to set both `@contents` and `@template` on the
-same file file results in an interpet error.
+Declares a string <value> to use as the file contents. Attempting to set both `@contents` and 
+`@template` on the same file results in an interpet error.
 
 #### @perms
 
@@ -75,8 +77,8 @@ same file file results in an interpet error.
 ```
 
 Declares the 32-bit Unix permissions to assign to the file. If this attribute 
-is unset a default value of `0666` is used. This is typically given as a four
-digit hexadecimal value such as `0755`.
+is unset a default value of `0777` is used. This must be given as 4 octal digits
+such as `0755`.
 
 #### @template
 
@@ -85,8 +87,38 @@ digit hexadecimal value such as `0755`.
 ```
 
 The path to a Go template file that this program should execute to generate the
-contents of the file.  The current user must have permission to read the template
-file. See the [templates](#templates) section below for more information.
+contents of the file. The current user must have permission to read the template
+file. Attempting to set both `@contents` and `@template` on the same file results in an
+interpet error. 
+
+See the [templates](#template-files) section below for more information about templates.
+
+
+### dir
+
+```
+(dir <dirname> [attributes... | children...])
+```
+
+Generates a directory.
+
+The directory name must be a valid name for the current platform. It is
+evaluated as being relative to the root of its parent directory even if
+it contains one or more leading slashes. If the directory is declared at the
+root level then the directory name is evaluated relative to the `root_dir`.
+Directory attributes and children may be given in any order and directories may
+have any number of children.
+
+#### @perms
+
+```
+(@perms <mode>)
+```
+
+## Template Files
+
+Template files are executed using Go's [template](https://pkg.go.dev/text/template)
+package. mktree includes several built-in functions for use in templates, listed below.
 
 ```
 %(snippet template_example examples/examples.tree)
@@ -103,44 +135,6 @@ This will generate the file `hello.txt` with the contents:
 ```
 Hello, Example User!
 ```
-
-__File examples__
-
-```
-%(snippet file_example examples/examples.tree)
-```
-
-### dir
-
-```
-(dir <dirname> [attributes... | children...])
-```
-
-Generates a directory.
-
-The directory name must be a valid name for the current platform. The directory
-path is evaluated relative to the root of its parent directory even if it starts
-with one or more leading slashes. If the directory is declared at the root level
-then the path is evaluated relative to the root directory. Directory attributes
-and children may be given in any order, and directories may have any number of
-children.
-
-__Examples__
-
-```
-%(snippet dir_example examples/examples.tree)
-```
-
-#### @perms
-
-```
-(@perms <mode>)
-```
-
-## Template Files
-
-Template files are executed using Go's [template](https://pkg.go.dev/text/template)
-package.  mktree includes several built-in functions for use in templates, listed below.
 
 ### Builtin functions
 

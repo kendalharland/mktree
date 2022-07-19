@@ -57,7 +57,7 @@ func Example_vars() {
 	`, map[string]string{
 		"dirname":  "a",
 		"filename": "b.txt",
-		"perms":    "555",
+		"perms":    "0555",
 	})
 	// Output:
 	// drwxrwxrwx [example]

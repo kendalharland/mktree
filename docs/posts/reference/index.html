@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Contents The command-line interface Concepts Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
+    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
               [-vars=&lt;name&gt;=&lt;value&gt;]
               &lt;source-file&gt;
 
@@ -24,7 +24,7 @@
     	A list of key-value pairs to substitute in the source while preprocessing
   -version
     	Print the version and exit
- Concepts Variables Variables may appear anywhere in the source file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.">
+ Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ) and replaced in the source using string substitution during a preprocessing step. This happens before the input source is interpreted, meaning variables are not part of the mktree grammar.">
   
 
   <link rel="apple-touch-icon" sizes="180x180" href="/mktree/mktree/apple-touch-icon.png">
@@ -285,8 +285,7 @@
     <h2>Contents</h2>
     <nav id="TableOfContents">
   <ul>
-    <li><a href="#the-command-line-interface">The command-line interface</a></li>
-    <li><a href="#concepts">Concepts</a>
+    <li><a href="#the-command-line-interface">The command-line interface</a>
       <ul>
         <li><a href="#variables">Variables</a></li>
         <li><a href="#builtin-variables">Builtin Variables</a>
@@ -296,7 +295,7 @@
         </li>
       </ul>
     </li>
-    <li><a href="#filesystem-entities">Filesystem entities</a>
+    <li><a href="#api-reference">API Reference</a>
       <ul>
         <li><a href="#file">file</a>
           <ul>
@@ -344,13 +343,13 @@
     	Print the version and exit
 
 </code></pre>
-<h2 id="concepts">Concepts</h2>
 <h3 id="variables">Variables</h3>
-<p>Variables may appear anywhere in the source file and must be surrounded by
-<code>%(</code> and <code>)</code>.  Variables are inserted using simple string substitution by a
-preprocessing step before code is interpreted. This means that variables are
-not part of the mktree grammar.</p>
-<p>Example:  Given a file <code>layout.tree</code> with the following contents:</p>
+<p>Variables are given as command-line arguments and may appear anywhere in the source
+file. They are surrounded by <code>%(</code> and <code>)</code> and replaced in the source using string substitution
+during a preprocessing step. This happens before the input source is interpreted, meaning
+variables are not part of the mktree grammar.</p>
+<p><strong>Example</strong></p>
+<p>Given a file <code>layout.tree</code> with the following contents:</p>
 <pre><code>(file &quot;%(filename)&quot;)
 </code></pre>
 <p>This command will generate the file <code>example.txt</code>:</p>
@@ -360,35 +359,53 @@ not part of the mktree grammar.</p>
 <h4 id="root_dir">root_dir</h4>
 <p>The variable <code>%(root_dir)</code> is always defined. It is the absolute path to the
 directory where mktree will create all other files and directories. The caller
-can set <code>root_dir</code> like any other variable using mktree&rsquo;s <code>-var</code> flag.</p>
-<h2 id="filesystem-entities">Filesystem entities</h2>
+can set <code>root_dir</code> using the CLI&rsquo;s <code>-root</code> flag.  It is an error to attempt to
+set the root dir by passing <code>-vars=root_dir=...</code></p>
+<h2 id="api-reference">API Reference</h2>
 <h3 id="file">file</h3>
 <pre><code>(file &lt;filename&gt; [attributes...])
 </code></pre>
 <p>Generates a regular file.</p>
-<p>The filename must be a valid filename for the current platform. The filename is
-evaluated relative to the root of its parent directory even if it starts with
-one or more leading slashes. If the file is declared at the root level then the
-filename is evaluated relative to the root directory.</p>
+<p>The filename must be a valid filename for the current platform. It is
+evaluated as being relative to the root of its parent directory even if
+it contains one or more leading slashes. If the file is declared at the
+root level then the filename is evaluated relative to the <code>root_dir</code>.</p>
 <p><strong>File attributes</strong></p>
 <h4 id="contents">@contents</h4>
 <pre><code>(@contents &lt;value&gt;)
 </code></pre>
-<p>Declares a string <!-- raw HTML omitted --> to write to the the file. This is mutually exclusive
-with <code>@template</code>; Attempting to set both <code>@contents</code> and <code>@template</code> on the
-same file file results in an interpet error.</p>
+<p>Declares a string <!-- raw HTML omitted --> to use as the file contents. Attempting to set both <code>@contents</code> and
+<code>@template</code> on the same file results in an interpet error.</p>
 <h4 id="perms">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
 </code></pre>
 <p>Declares the 32-bit Unix permissions to assign to the file. If this attribute
-is unset a default value of <code>0666</code> is used. This is typically given as a four
-digit hexadecimal value such as <code>0755</code>.</p>
+is unset a default value of <code>0777</code> is used. This must be given as 4 octal digits
+such as <code>0755</code>.</p>
 <h4 id="template">@template</h4>
 <pre><code>(@template &lt;filename&gt; [variables...])
 </code></pre>
 <p>The path to a Go template file that this program should execute to generate the
-contents of the file.  The current user must have permission to read the template
-file. See the <a href="#templates">templates</a> section below for more information.</p>
+contents of the file. The current user must have permission to read the template
+file. Attempting to set both <code>@contents</code> and <code>@template</code> on the same file results in an
+interpet error.</p>
+<p>See the <a href="#template-files">templates</a> section below for more information about templates.</p>
+<h3 id="dir">dir</h3>
+<pre><code>(dir &lt;dirname&gt; [attributes... | children...])
+</code></pre>
+<p>Generates a directory.</p>
+<p>The directory name must be a valid name for the current platform. It is
+evaluated as being relative to the root of its parent directory even if
+it contains one or more leading slashes. If the directory is declared at the
+root level then the directory name is evaluated relative to the <code>root_dir</code>.
+Directory attributes and children may be given in any order and directories may
+have any number of children.</p>
+<h4 id="perms-1">@perms</h4>
+<pre><code>(@perms &lt;mode&gt;)
+</code></pre>
+<h2 id="template-files">Template Files</h2>
+<p>Template files are executed using Go&rsquo;s <a href="https://pkg.go.dev/text/template">template</a>
+package. mktree includes several built-in functions for use in templates, listed below.</p>
 <pre><code>; Generates template_example.txt by executing template_example.txt.tmpl
 (file "template_example.txt"
     (@template "examples/template_example.txt.tmpl"))
@@ -399,30 +416,6 @@ file. See the <a href="#templates">templates</a> section below for more informat
 <p>This will generate the file <code>hello.txt</code> with the contents:</p>
 <pre><code>Hello, Example User!
 </code></pre>
-<p><strong>File examples</strong></p>
-<pre><code>; Generates example.txt
-(file "example.txt" (@perms 0667))
-</code></pre>
-<h3 id="dir">dir</h3>
-<pre><code>(dir &lt;dirname&gt; [attributes... | children...])
-</code></pre>
-<p>Generates a directory.</p>
-<p>The directory name must be a valid name for the current platform. The directory
-path is evaluated relative to the root of its parent directory even if it starts
-with one or more leading slashes. If the directory is declared at the root level
-then the path is evaluated relative to the root directory. Directory attributes
-and children may be given in any order, and directories may have any number of
-children.</p>
-<p><strong>Examples</strong></p>
-<pre><code>; Generates example/example.txt
-(dir "example" (@perms 0777))
-</code></pre>
-<h4 id="perms-1">@perms</h4>
-<pre><code>(@perms &lt;mode&gt;)
-</code></pre>
-<h2 id="template-files">Template Files</h2>
-<p>Template files are executed using Go&rsquo;s <a href="https://pkg.go.dev/text/template">template</a>
-package.  mktree includes several built-in functions for use in templates, listed below.</p>
 <h3 id="builtin-functions">Builtin functions</h3>
 <h4 id="fileexists">FileExists</h4>
 <p>Returns true iff the file at the given path exists.</p>

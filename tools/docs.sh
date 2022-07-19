@@ -2,16 +2,19 @@
 
 set -eu
 
-DOCS_SRC_DIR=doc
-DOCS_TMP_DIR=`pwd`/.docs-staging
-DOCS_OUT_DIR=docs
-
-mkdir -p $DOCS_TMP_DIR
+DEFAULT_BASE_URL="/mktree"
+DEFAULT_DOCS_OUT_DIR="docs"
 
 function build {
-  baseURL="$1"
-  if [ -z $baseURL ]; then
-    baseURL="/mktree"
+  BASE_URL="$1"
+  DOCS_OUT_DIR="$2"
+
+  if [ -z $BASE_URL ]; then
+    BASE_URL=$DEFAULT_BASE_URL
+  fi
+
+  if [ -z DOCS_OUT_DIR ]; then
+    DOCS_OUT_DIR=$DEFAULT_DOCS_OUT_DIR
   fi
 
   workdir=$(mktemp -d)
@@ -22,7 +25,7 @@ function build {
 
   echo "info: running hugo"
   pushd $workdir/doc
-  hugo --baseURL=$baseURL # We serve at /mktree on github pages
+  hugo --baseURL=$BASE_URL # We preview at /mktree on github pages
   popd
   
   #
@@ -41,22 +44,22 @@ function build {
   rm -rf $workdir
 }
 
-function serve {
-  #pushd $DOCS_SRC_DIR
-  #hugo server -D
-  build "/"
+function preview {
+  DOCS_OUT_DIR=$(mktemp -d)
+  build "/" $DOCS_OUT_DIR
   pushd $DOCS_OUT_DIR
   python3 -m http.server
   popd
+  rm -rf $DOCS_OUT_DIR
 }
 
 while getopts "bps" COMMAND; do
   case $COMMAND in
   b) 
-     build "/mktree"
+     build "/mktree" "docs"
      ;;
   s) 
-     serve
+     preview
      ;;
   *)
      echo "Invalid option"

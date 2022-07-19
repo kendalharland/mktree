@@ -38,7 +38,7 @@ type Interpreter struct {
 
 func (i *Interpreter) init() error {
 	if _, ok := i.Vars["root_dir"]; ok {
-		return fmt.Errorf("cannot set variable root_dir")
+		return fmt.Errorf("cannot set variable 'root_dir'")
 	}
 	if i.Root == "" {
 		i.Root = "."
@@ -207,12 +207,12 @@ func evalString(a *parse.Arg) (string, error) {
 func evalFileMode(a *parse.Arg) (os.FileMode, error) {
 	l := a.Literal
 
-	if l.Token.Kind != parse.NumberTokenKind {
-		return 0, interpretError("%q is not a number", l.Token.Value)
+	if l.Token.Kind != parse.NumberTokenKind || len(l.Token.Value) != 4 {
+		return 0, interpretError("invalid file mode %q", l.Token.Value)
 	}
 	n, err := strconv.ParseUint(l.Token.Value, 8, 32)
 	if err != nil {
-		return 0, interpretError("%q is not a file mode octal", l.Token.Value)
+		return 0, interpretError("invalid file mode %q", l.Token.Value)
 	}
 
 	return os.FileMode(uint32(n)), nil

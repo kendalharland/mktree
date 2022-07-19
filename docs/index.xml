@@ -22,10 +22,9 @@
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/language/</guid>
-      <description>Contents Introduction Language Strings Numbers Attributes Filesystem entities Comments Variables Grammar Introduction This page describes the design and behavior of the language.
-Language mktree uses a basic S-expression (&amp;ldquo;sexpr&amp;rdquo;) syntax to describe a tree of filesystem entities to create. The types are:
-Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strings are enclosed in double quotes. There are no supported escape sequences.
-&amp;quot;This is a string.&amp;quot; Numbers Numbers are parsed as unsigned integers having no bit-width.</description>
+      <description>Contents Introduction Preprocessing Variables Language Strings Numbers Attributes Filesystem entities Comments Grammar Introduction This page describes the design and behavior of the language.
+Preprocessing Variables Variables are alphabetic literals surrounded by %( and ). They are not interpreted. Instead they are replaced in the source using string substitution. For more information about variables see the Variables section of the reference.
+Language mktree uses a basic S-expression (&amp;ldquo;sexpr&amp;rdquo;) syntax to describe a tree of filesystem entities to create.</description>
     </item>
     
     <item>
@@ -34,7 +33,7 @@ Strings Numbers (unsigned integers) Attributes Filesystem entities Strings Strin
       <pubDate>Tue, 12 Jul 2022 16:06:53 +0000</pubDate>
       
       <guid>/mktree/posts/reference/</guid>
-      <description>Contents The command-line interface Concepts Variables Builtin Variables root_dir Filesystem entities file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User The command-line interface %(content cli-usage) Concepts Variables Variables may appear anywhere in the source file and must be surrounded by %( and ). Variables are inserted using simple string substitution by a preprocessing step before code is interpreted. This means that variables are not part of the mktree grammar.</description>
+      <description>Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User The command-line interface %(content cli-usage) Variables Variables are given as command-line arguments and may appear anywhere in the source file. They are surrounded by %( and ) and replaced in the source using string substitution during a preprocessing step. This happens before the input source is interpreted, meaning variables are not part of the mktree grammar.</description>
     </item>
     
   </channel>
