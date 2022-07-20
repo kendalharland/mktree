@@ -81,7 +81,7 @@ func execute(_ context.Context) error {
 	filename := flag.Arg(0)
 
 	if o.debug {
-		tree, err := i.InterpretFile(filename)
+		tree, err := i.InterpretFile(nil, filename)
 		if err != nil {
 			return err
 		}
@@ -89,5 +89,5 @@ func execute(_ context.Context) error {
 		return nil
 	}
 
-	return i.ExecFile(filename)
+	return i.ExecFile(nil, filename)
 }

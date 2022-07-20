@@ -92,7 +92,7 @@ func TestInterpreter_Interpret(t *testing.T) {
 			name:   "file_with_template",
 			source: `(file "a" (@template "template.tmpl"))`,
 			want: []interface{}{
-				&file{name: "[test_root]/a", TemplateFilename: "template.tmpl", perms: defaultFileMode},
+				&file{name: "[test_root]/a", templatePath: "template.tmpl", perms: defaultFileMode},
 			},
 		},
 		{
@@ -170,48 +170,48 @@ func TestInterpreter_Interpret(t *testing.T) {
 		{
 			name:    "file_missing_name",
 			source:  `(file)`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "dir_missing_name",
 			source:  `(dir)`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "dir_perms_missing_name",
 			source:  `(dir (@perms 0555))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "file_perms_missing_name",
 			source:  `(file (@perms 0712))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 
 		{
 			name:    "dir_perms_invalid_file_mode_type",
 			source:  `(dir "foo" (@perms "nan"))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "file_perms_invalid_file_mode_type",
 			source:  `(file (@perms "nan"))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "file_perms_invalid_file_mode_number",
 			source:  `(file (@perms 555))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "file_template_is_mutually_exclusive_with_contents",
 			source:  `(file "a" (@content "this is a") (@template "a.tmpl"))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "file_contents_is_mutually_exclusive_with_template",
 			source:  `(file "a" (@template "a.tmpl") (@content "this is a"))`,
-			wantErr: ErrInterpret,
+			wantErr: errInterpret,
 		},
 		{
 			name:    "dir_perms_invalid_neg_file_mode",
@@ -243,7 +243,7 @@ func TestInterpreter_Interpret(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			tree, err := i.Interpret(strings.NewReader(test.source))
+			tree, err := i.InterpretFile(strings.NewReader(test.source), "")
 			t.Log(stderr.String())
 			switch {
 			case err != nil && test.wantErr != nil:
@@ -266,17 +266,9 @@ func TestInterpreter_Interpret(t *testing.T) {
 
 func mkdir(root string, entries []interface{}) (*dir, error) {
 	d := defaultRootDir(root)
-	// TODO: Dedup with the same setter in interpreter.go.
 	for i, e := range entries {
-		switch t := e.(type) {
-		case *file:
-			d.addFile(t)
-		case *dir:
-			d.addDir(t)
-		case *link:
-			d.addLink(t)
-		default:
-			return nil, fmt.Errorf("value %v of type %#T at position %d is not a *File or a *Dir", e, e, i)
+		if err := d.addChild(e); err != nil {
+			return nil, fmt.Errorf("entry %d: %w", i, err)
 		}
 	}
 	return d, nil

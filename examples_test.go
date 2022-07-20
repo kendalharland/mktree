@@ -82,7 +82,7 @@ func interpretVars(source string, vars map[string]string) {
 		Vars: vars,
 		Root: "[example]",
 	}
-	dir, err := i.Interpret(strings.NewReader(source))
+	dir, err := i.InterpretFile(strings.NewReader(source), "")
 	if err != nil {
 		panic(err)
 	}
@@ -108,7 +108,7 @@ func TestExamples(t *testing.T) {
 		WithTemplateFunction("User", func() string { return "test" }),
 	}
 
-	if err := i.ExecFile("examples/docs/examples.tree", opts...); err != nil {
+	if err := i.ExecFile(nil, "examples/docs/examples.tree", opts...); err != nil {
 		t.Fatal(err)
 	}
 

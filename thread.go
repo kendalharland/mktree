@@ -1,13 +1,28 @@
 package mktree
 
+import "path/filepath"
+
 type thread struct {
 	templateFuncs map[string]interface{}
 	sourceRoot    string
 }
 
-func (ctx *thread) addTemplateFunc(name string, f interface{}) {
-	if ctx.templateFuncs == nil {
-		ctx.templateFuncs = map[string]interface{}{}
+func newThread(filename string, opts ...Option) *thread {
+	sourceRoot := filepath.Dir(filename)
+	if sourceRoot == "" {
+		sourceRoot = "."
 	}
-	ctx.templateFuncs[name] = f
+
+	t := &thread{sourceRoot: sourceRoot}
+	for _, o := range opts {
+		o.apply(t)
+	}
+	return t
+}
+
+func (thr *thread) addTemplateFunc(name string, f interface{}) {
+	if thr.templateFuncs == nil {
+		thr.templateFuncs = map[string]interface{}{}
+	}
+	thr.templateFuncs[name] = f
 }

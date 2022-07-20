@@ -36,6 +36,20 @@ func (d *dir) debugPrint(w io.Writer) {
 	}
 }
 
+func (d *dir) addChild(child interface{}) error {
+	switch t := child.(type) {
+	case *file:
+		d.addFile(t)
+	case *dir:
+		d.addDir(t)
+	case *link:
+		d.addLink(t)
+	default:
+		return fmt.Errorf("%v is not a valid directory child", child)
+	}
+	return nil
+}
+
 func (d *dir) addDir(child *dir) {
 	d.dirs = append(d.dirs, child)
 }
@@ -48,14 +62,6 @@ func (d *dir) addLink(child *link) {
 	d.links = append(d.links, child)
 }
 
-func (d *dir) setAttribute(name string, args []*parse.Arg) error {
-	switch name {
-	case "perms":
-		return d.setPerms(args)
-	}
-	return interpretError("invalid file attribute %q", name)
-}
-
 func (d *dir) setPerms(args []*parse.Arg) error {
 	mode, err := evalFileMode(args[0])
 	if err != nil {
@@ -66,56 +72,32 @@ func (d *dir) setPerms(args []*parse.Arg) error {
 }
 
 type file struct {
-	name             string
-	perms            os.FileMode
-	contents         []byte
-	TemplateFilename string
+	name         string
+	perms        os.FileMode
+	contents     []byte
+	templatePath string
 }
 
 func (f *file) debugPrint(w io.Writer) {
 	fmt.Fprintf(w, "%v %v %d\n", f.perms, f.name, len(f.contents))
 }
 
-func (f *file) setAttribute(name string, args []*parse.Arg) error {
-	switch name {
-	case "perms":
-		return f.setPerms(args)
-	case "template":
-		return f.setTemplate(args)
-	case "contents":
-		return f.setContents(args)
-	}
-	return interpretError("invalid file attribute %q", name)
-}
-
-func (f *file) setPerms(args []*parse.Arg) error {
-	mode, err := evalFileMode(args[0])
-	if err != nil {
-		return err
-	}
-	f.perms = mode
+func (f *file) setPerms(perms os.FileMode) error {
+	f.perms = perms
 	return nil
 }
 
-func (f *file) setTemplate(args []*parse.Arg) error {
+func (f *file) setTemplate(filename string) error {
 	if len(f.contents) > 0 {
 		return errors.New("cannot set @template if @contents is set")
 	}
-	filename, err := evalString(args[0])
-	if err != nil {
-		return err
-	}
-	f.TemplateFilename = filename
+	f.templatePath = filename
 	return nil
 }
 
-func (f *file) setContents(args []*parse.Arg) error {
-	if f.TemplateFilename != "" {
+func (f *file) setContents(contents []byte) error {
+	if f.templatePath != "" {
 		return errors.New("cannot set @contents if @template is set")
-	}
-	contents, err := evalString(args[0])
-	if err != nil {
-		return err
 	}
 	f.contents = []byte(contents)
 	return nil
@@ -125,12 +107,4 @@ type link struct {
 	name     string
 	target   string
 	symbolic bool
-}
-
-func (l *link) setAttribute(name string, args []*parse.Arg) error {
-	switch name {
-	case "symbolic":
-		l.symbolic = true
-	}
-	return nil
 }

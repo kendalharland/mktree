@@ -69,7 +69,7 @@ Comments may appear anywhere the source, including in the middle of sexprs.
 ## Grammar
 
 ```
-config    = stmt*
+tree      = stmt*
 stmt      = comment
           | sexpr
 comment   = ';' [^\n]*
