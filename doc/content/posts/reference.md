@@ -123,7 +123,7 @@ Template files are executed using Go's [template](https://pkg.go.dev/text/templa
 package. mktree includes several built-in functions for use in templates, listed below.
 
 ```
-%(snippet template_example examples/examples.tree)
+%(snippet template_example examples/docs/examples.tree)
 ```
 
 And the file `hello_world.txt.tmpl`:
@@ -145,7 +145,7 @@ Hello, Example User!
 Returns true iff the file at the given path exists.
 
 ```
-%(snippet file_exists_example examples/template_example.txt.tmpl)
+%(snippet file_exists_example examples/docs/template_example.txt.tmpl)
 ```
 
 #### FileContents
@@ -155,7 +155,7 @@ file does not exist an error is generated and template execution exits
 early.
 
 ```
-%(snippet file_contents_example examples/template_example.txt.tmpl)
+%(snippet file_contents_example examples/docs/template_example.txt.tmpl)
 ```
 
 #### Now
@@ -163,7 +163,7 @@ early.
 Returns the current time in the format described in [RFC-3339](https://datatracker.ietf.org/doc/html/rfc3339).
 
 ```
-%(snippet now_example examples/template_example.txt.tmpl)
+%(snippet now_example examples/docs/template_example.txt.tmpl)
 ```
 
 #### User
@@ -172,7 +172,7 @@ Returns the name of the current User, or the empty string if the current User's 
 cannot be determined.
 
 ```
-%(snippet user_example examples/template_example.txt.tmpl)
+%(snippet user_example examples/docs/template_example.txt.tmpl)
 ```
 
 #### Var
@@ -180,7 +180,7 @@ cannot be determined.
 Returns the value of any builtin or command-line [variable](#variables).
 
 ```
-%(snippet var_example examples/template_example.txt.tmpl)
+%(snippet var_example examples/docs/template_example.txt.tmpl)
 ```
 
 #### Year
@@ -188,5 +188,5 @@ Returns the value of any builtin or command-line [variable](#variables).
 Returns the current year.
 
 ```
-%(snippet year_example examples/template_example.txt.tmpl)
+%(snippet year_example examples/docs/template_example.txt.tmpl)
 ```

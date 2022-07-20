@@ -21,7 +21,6 @@ And running `mktree`:
 mktree -vars=username=$(whoami) layout.tree 
 ```
 
-
-* To get started, check out some of the [examples](https://github.com/kendalharland/mktree/blob/main/examples_test.go)
+* To get started, check out some of the [examples](https://github.com/kendalharland/mktree/blob/main/examples/)
 
 * For more details, check out the [reference](posts/reference/).
