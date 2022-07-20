@@ -80,7 +80,7 @@ literal   = KEYWORD
           | ATTRIBUTE
           | STRING
           | NUMBER
-KEYWORD   = 'dir' | 'file'
+KEYWORD   = 'dir' | 'file' | 'link'
 ATTRIBUTE = '@' [a-zA-Z0-9_-]+
 STRING    = '"'[^"]*'"'
 NUMBER    = [0-9]+

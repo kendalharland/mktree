@@ -99,18 +99,10 @@ func (i *Interpreter) InterpretFile(filename string) (*Tree, error) {
 	return i.Interpret(bytes.NewReader(input))
 }
 
-func createTree(t *Tree, sourceRoot string, opts ...Option) error {
-	ctx := &thread{sourceRoot: sourceRoot}
-	for _, o := range opts {
-		o.apply(ctx)
-	}
-	return createDir(ctx, t.root)
-}
-
 func defaultRootDir(name string) *dir {
 	return &dir{
-		Name:  name,
-		Perms: defaultDirMode,
+		name:  name,
+		perms: defaultDirMode,
 	}
 }
 
@@ -123,6 +115,111 @@ func evalConfig(c *parse.Config, root *dir) error {
 	return nil
 }
 
+func evalDir(parent *dir, e *parse.SExpr) error {
+	if len(e.Args) < 1 {
+		return interpretError("expected a directory name")
+	}
+
+	name, err := evalString(e.Args[0])
+	if err != nil {
+		return err
+	}
+
+	name = filepath.Join(parent.name, name)
+	name = filepath.Clean(name)
+	d := &dir{
+		name:  name,
+		perms: defaultDirMode,
+	}
+	for _, arg := range e.Args[1:] {
+		if err := evalDirChild(d, arg.SExpr); err != nil {
+			return err
+		}
+	}
+
+	parent.addDir(d)
+	return nil
+}
+
+func evalAttr(owner interface{}, e *parse.SExpr) error {
+	attr, err := evalAttrName(e.Literal)
+	if err != nil {
+		return err
+	}
+	args := e.Args
+	switch t := owner.(type) {
+	case *dir:
+		return t.setAttribute(attr, args)
+	case *file:
+		return t.setAttribute(attr, args)
+	case *link:
+		return t.setAttribute(attr, args)
+	default:
+		panic(fmt.Errorf("evalAttr(%q) called on owner of type `%T` which does not have attributes", attr, t))
+	}
+}
+
+func evalFile(parent *dir, e *parse.SExpr) error {
+	if len(e.Args) < 1 {
+		return interpretError("expected a filename")
+	}
+
+	name, err := evalString(e.Args[0])
+	if err != nil {
+		return err
+	}
+
+	name = filepath.Join(parent.name, name)
+	name = filepath.Clean(name)
+	f := &file{
+		name:  name,
+		perms: defaultFileMode,
+	}
+	for _, arg := range e.Args[1:] {
+		if err := evalFileChild(f, arg.SExpr); err != nil {
+			return err
+		}
+	}
+
+	parent.addFile(f)
+	return nil
+}
+
+func evalLink(parent *dir, e *parse.SExpr) error {
+	if len(e.Args) < 2 {
+		return interpretError("expected a link target and name")
+	}
+
+	target, err := evalString(e.Args[0])
+	if err != nil {
+		return err
+	}
+	if !filepath.IsAbs(target) {
+		target = filepath.Join(parent.name, target)
+	}
+
+	name, err := evalString(e.Args[1])
+	if err != nil {
+		return err
+	}
+	// TODO: Put this in a helper.
+	name = filepath.Join(parent.name, name)
+
+	l := &link{
+		name:   name,
+		target: target,
+	}
+	for _, arg := range e.Args[2:] {
+		if err := evalLinkChild(l, arg.SExpr); err != nil {
+			return err
+		}
+	}
+
+	parent.addLink(l)
+	return nil
+
+}
+
 func evalDirChild(parent *dir, e *parse.SExpr) (err error) {
 	switch e.Literal.Token.Kind {
 	case parse.AttributeTokenKind:
@@ -131,6 +228,8 @@ func evalDirChild(parent *dir, e *parse.SExpr) (err error) {
 		err = evalDir(parent, e)
 	case parse.FileTokenKind:
 		err = evalFile(parent, e)
+	case parse.LinkTokenKind:
+		err = evalLink(parent, e)
 	default:
 		err = interpretError("invalid s-expression: %v", e.Literal.Token)
 	}
@@ -147,73 +246,14 @@ func evalFileChild(parent *file, e *parse.SExpr) (err error) {
 	return err
 }
 
-func evalDir(parent *dir, e *parse.SExpr) error {
-	if len(e.Args) < 1 {
-		return interpretError("expected a directory name")
-	}
-
-	name, err := evalString(e.Args[0])
-	if err != nil {
-		return err
-	}
-
-	d := &dir{Name: filepath.Join(parent.Name, name)}
-	for _, arg := range e.Args[1:] {
-		if err := evalDirChild(d, arg.SExpr); err != nil {
-			return err
-		}
-	}
-	if d.Perms == os.FileMode(0) {
-		d.Perms = defaultDirMode
-	}
-
-	parent.addDir(d)
-	return nil
-}
-
-func evalAttr(owner interface{}, e *parse.SExpr) error {
-	attr, err := evalAttrName(e.Literal)
-	if err != nil {
-		return err
-	}
-	return setAttr(owner, attr, e.Args)
-}
-
-func setAttr(owner interface{}, name string, args []*parse.Arg) error {
-	switch t := owner.(type) {
-	case *file:
-		return t.setAttribute(name, args)
-	case *dir:
-		return t.setAttribute(name, args)
+func evalLinkChild(parent *link, e *parse.SExpr) (err error) {
+	switch e.Literal.Token.Kind {
+	case parse.AttributeTokenKind:
+		err = evalAttr(parent, e)
 	default:
-		panic(fmt.Errorf("setAttr(%q) called on owner of type `%T` which does not have attributes", name, t))
+		err = interpretError("invalid s-expression: %v", e.Literal.Token.Kind)
 	}
-}
-
-func evalFile(parent *dir, e *parse.SExpr) error {
-	if len(e.Args) < 1 {
-		return interpretError("expected a filename")
-	}
-
-	name, err := evalString(e.Args[0])
-	if err != nil {
-		return err
-	}
-
-	name = filepath.Join(parent.Name, name)
-	name = filepath.Clean(name)
-	f := &file{
-		Name:  name,
-		Perms: defaultFileMode,
-	}
-	for _, arg := range e.Args[1:] {
-		if err := evalFileChild(f, arg.SExpr); err != nil {
-			return err
-		}
-	}
-
-	parent.addFile(f)
-	return nil
+	return err
 }
 
 func evalAttrName(l *parse.Literal) (string, error) {
@@ -246,20 +286,37 @@ func evalFileMode(a *parse.Arg) (os.FileMode, error) {
 	return os.FileMode(uint32(n)), nil
 }
 
+//
+// Generators
+//
+
+func createTree(t *Tree, sourceRoot string, opts ...Option) error {
+	ctx := &thread{sourceRoot: sourceRoot}
+	for _, o := range opts {
+		o.apply(ctx)
+	}
+	return createDir(ctx, t.root)
+}
+
 func createDir(ctx *thread, d *dir) error {
 	umask := unix.Umask(0)
 	defer unix.Umask(umask)
 
-	if err := os.MkdirAll(d.Name, d.Perms); err != nil {
+	if err := os.MkdirAll(d.name, d.perms); err != nil {
 		return err
 	}
-	for _, child := range d.Dirs {
+	for _, child := range d.dirs {
 		if err := createDir(ctx, child); err != nil {
 			return err
 		}
 	}
-	for _, child := range d.Files {
+	for _, child := range d.files {
 		if err := createFile(ctx, child); err != nil {
+			return err
+		}
+	}
+	for _, child := range d.links {
+		if err := createLink(ctx, child); err != nil {
 			return err
 		}
 	}
@@ -275,15 +332,15 @@ func createFile(ctx *thread, f *file) error {
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(filepath.Dir(f.Name), defaultDirMode); err != nil {
+	if err := os.MkdirAll(filepath.Dir(f.name), defaultDirMode); err != nil {
 		return err
 	}
-	return ioutil.WriteFile(f.Name, []byte(contents), f.Perms)
+	return ioutil.WriteFile(f.name, []byte(contents), f.perms)
 }
 
 func fileContents(ctx *thread, f *file) (string, error) {
-	if len(f.Contents) > 0 {
-		return string(f.Contents), nil
+	if len(f.contents) > 0 {
+		return string(f.contents), nil
 	}
 	if len(f.TemplateFilename) > 0 {
 		filename := filepath.Join(ctx.sourceRoot, f.TemplateFilename)
@@ -303,6 +360,22 @@ func execTemplateFile(filename string, funcMap template.FuncMap) (string, error)
 		return "", err
 	}
 	return contents.String(), nil
+}
+
+func createLink(ctx *thread, l *link) error {
+	umask := unix.Umask(0)
+	defer unix.Umask(umask)
+
+	if err := os.MkdirAll(filepath.Dir(l.name), defaultDirMode); err != nil {
+		return err
+	}
+
+	linker := os.Link
+	if l.symbolic {
+		linker = os.Symlink
+	}
+
+	return linker(l.target, l.name)
 }
 
 // Errors.

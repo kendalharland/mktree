@@ -13,3 +13,7 @@
 (file "template_example.txt"
     (@template "template_example.txt.tmpl"))
 ; [end:template_example]
+
+; Generates symbolic.txt as a symlink to original.txt.
+(file "original.txt")
+(link "original.txt" "symbolic.txt" (@symbolic))

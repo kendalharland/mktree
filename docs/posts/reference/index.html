@@ -10,7 +10,7 @@
 
   
     
-    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms Template Files Builtin functions FileExists FileContents Now User Var Year The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
+    <meta name="description" content="Contents The command-line interface Variables Builtin Variables root_dir API Reference file @contents @perms @template dir @perms link @perms @symbolic Template Files Builtin functions FileExists FileContents Now User Var Year The command-line interface usage: mktree [-debug] [-version] [-allow-undefined-vars]
               [-vars=&lt;name&gt;=&lt;value&gt;]
               &lt;source-file&gt;
 
@@ -309,6 +309,12 @@
             <li><a href="#perms-1">@perms</a></li>
           </ul>
         </li>
+        <li><a href="#link">link</a>
+          <ul>
+            <li><a href="#perms-2">@perms</a></li>
+            <li><a href="#symbolic">@symbolic</a></li>
+          </ul>
+        </li>
       </ul>
     </li>
     <li><a href="#template-files">Template Files</a>
@@ -370,7 +376,7 @@ set the root dir by passing <code>-vars=root_dir=...</code></p>
 </code></pre>
 <p>Generates a regular file.</p>
 <p>The filename must be a valid filename for the current platform. It is
-evaluated as being relative to the root of its parent directory even if
+evaluated relative to the root of its parent directory even if
 it contains one or more leading slashes. If the file is declared at the
 root level then the filename is evaluated relative to the <code>root_dir</code>.</p>
 <p><strong>File attributes</strong></p>
@@ -398,7 +404,7 @@ to set both <code>@contents</code> and <code>@template</code> on the same file r
 </code></pre>
 <p>Generates a directory.</p>
 <p>The directory name must be a valid name for the current platform. It is
-evaluated as being relative to the root of its parent directory even if
+evaluated relative to the root of its parent directory even if
 it contains one or more leading slashes. If the directory is declared at the
 root level then the directory name is evaluated relative to the <code>root_dir</code>.
 Directory attributes and children may be given in any order and directories may
@@ -406,6 +412,22 @@ have any number of children.</p>
 <h4 id="perms-1">@perms</h4>
 <pre><code>(@perms &lt;mode&gt;)
 </code></pre>
+<h3 id="link">link</h3>
+<pre><code>(link &lt;target&gt; &lt;link-name&gt; [attributes...])
+</code></pre>
+<p>Creates a link to a file or directory.</p>
+<p>The target is an absolute or relative path to another directory or file.
+The link name is evaluated relative to the root of its parent directory even if
+it contains one or more leading slashes. If the link is declared at the
+root level then the link name is evaluated relative to the <code>root_dir</code>. By default
+links are hard links. To make a symbolic link, use the <code>[@symbolic](#@symbolic)</code> attribute.</p>
+<h4 id="perms-2">@perms</h4>
+<pre><code>(@perms &lt;mode&gt;)
+</code></pre>
+<h4 id="symbolic">@symbolic</h4>
+<pre><code>(@symbolic)
+</code></pre>
+<p>This attribute causes mktree to create a symbolic link instead of a hard one.</p>
 <h2 id="template-files">Template Files</h2>
 <p>Template files are executed using Go&rsquo;s <a href="https://pkg.go.dev/text/template">template</a>
 package. mktree includes several built-in functions for use in templates, listed below.</p>

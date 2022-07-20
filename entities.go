@@ -19,28 +19,33 @@ func (t *Tree) DebugPrint(w io.Writer) {
 }
 
 type dir struct {
-	Name  string
-	Perms os.FileMode
-	Files []*file
-	Dirs  []*dir
+	name  string
+	perms os.FileMode
+	files []*file
+	dirs  []*dir
+	links []*link
 }
 
 func (d *dir) debugPrint(w io.Writer) {
-	fmt.Fprintf(w, "%v %v\n", d.Perms, d.Name)
-	for _, child := range d.Dirs {
+	fmt.Fprintf(w, "%v %v\n", d.perms, d.name)
+	for _, child := range d.dirs {
 		child.debugPrint(w)
 	}
-	for _, child := range d.Files {
+	for _, child := range d.files {
 		child.debugPrint(w)
 	}
 }
 
 func (d *dir) addDir(child *dir) {
-	d.Dirs = append(d.Dirs, child)
+	d.dirs = append(d.dirs, child)
 }
 
 func (d *dir) addFile(child *file) {
-	d.Files = append(d.Files, child)
+	d.files = append(d.files, child)
+}
+
+func (d *dir) addLink(child *link) {
+	d.links = append(d.links, child)
 }
 
 func (d *dir) setAttribute(name string, args []*parse.Arg) error {
@@ -56,19 +61,19 @@ func (d *dir) setPerms(args []*parse.Arg) error {
 	if err != nil {
 		return err
 	}
-	d.Perms = mode | fs.ModeDir
+	d.perms = mode | fs.ModeDir
 	return nil
 }
 
 type file struct {
-	Name             string
-	Perms            os.FileMode
-	Contents         []byte
+	name             string
+	perms            os.FileMode
+	contents         []byte
 	TemplateFilename string
 }
 
 func (f *file) debugPrint(w io.Writer) {
-	fmt.Fprintf(w, "%v %v %d\n", f.Perms, f.Name, len(f.Contents))
+	fmt.Fprintf(w, "%v %v %d\n", f.perms, f.name, len(f.contents))
 }
 
 func (f *file) setAttribute(name string, args []*parse.Arg) error {
@@ -88,12 +93,12 @@ func (f *file) setPerms(args []*parse.Arg) error {
 	if err != nil {
 		return err
 	}
-	f.Perms = mode
+	f.perms = mode
 	return nil
 }
 
 func (f *file) setTemplate(args []*parse.Arg) error {
-	if len(f.Contents) > 0 {
+	if len(f.contents) > 0 {
 		return errors.New("cannot set @template if @contents is set")
 	}
 	filename, err := evalString(args[0])
@@ -112,6 +117,20 @@ func (f *file) setContents(args []*parse.Arg) error {
 	if err != nil {
 		return err
 	}
-	f.Contents = []byte(contents)
+	f.contents = []byte(contents)
+	return nil
+}
+
+type link struct {
+	name     string
+	target   string
+	symbolic bool
+}
+
+func (l *link) setAttribute(name string, args []*parse.Arg) error {
+	switch name {
+	case "symbolic":
+		l.symbolic = true
+	}
 	return nil
 }

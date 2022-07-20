@@ -55,7 +55,7 @@ set the root dir by passing `-vars=root_dir=...`
 Generates a regular file.
 
 The filename must be a valid filename for the current platform. It is
-evaluated as being relative to the root of its parent directory even if
+evaluated relative to the root of its parent directory even if
 it contains one or more leading slashes. If the file is declared at the
 root level then the filename is evaluated relative to the `root_dir`.
 
@@ -105,7 +105,7 @@ See the [templates](#template-files) section below for more information about te
 Generates a directory.
 
 The directory name must be a valid name for the current platform. It is
-evaluated as being relative to the root of its parent directory even if
+evaluated relative to the root of its parent directory even if
 it contains one or more leading slashes. If the directory is declared at the
 root level then the directory name is evaluated relative to the `root_dir`.
 Directory attributes and children may be given in any order and directories may
@@ -116,6 +116,35 @@ have any number of children.
 ```
 (@perms <mode>)
 ```
+
+### link
+
+```
+(link <target> <link-name> [attributes...])
+```
+
+Creates a link to a file or directory.
+
+The target is an absolute or relative path to another directory or file.
+The link name is evaluated relative to the root of its parent directory even if
+it contains one or more leading slashes. If the link is declared at the
+root level then the link name is evaluated relative to the `root_dir`. By default
+links are hard links. To make a symbolic link, use the `[@symbolic](#@symbolic)` attribute.
+
+#### @perms
+
+```
+(@perms <mode>)
+```
+
+#### @symbolic
+
+```
+(@symbolic)
+```
+
+This attribute causes mktree to create a symbolic link instead of a hard one.
+
 
 ## Template Files
 

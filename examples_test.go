@@ -113,6 +113,8 @@ func TestExamples(t *testing.T) {
 	}
 
 	assertDir(t, filepath.Join(root, "example"), defaultDirMode)
+	assertFile(t, filepath.Join(root, "original.txt"), defaultFileMode, "")
+	assertLink(t, filepath.Join(root, "original.txt"), filepath.Join(root, "symbolic.txt"))
 	assertFile(t, filepath.Join(root, "example.txt"), os.FileMode(0667), "")
 	assertFile(t, filepath.Join(root, "template_example.txt"), defaultFileMode, strings.TrimSpace(`
 [start:now_example]
@@ -177,5 +179,28 @@ func assertFile(t *testing.T, name string, mode os.FileMode, contents string) {
 	}
 	if diff := cmp.Diff(string(got), contents); diff != "" {
 		t.Fatalf("got contents diff (+got,-want):\n%s\n", diff)
+	}
+}
+
+func assertLink(t *testing.T, target, name string) {
+	t.Helper()
+	stat, err := os.Lstat(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if stat.IsDir() {
+		t.Fatalf("%s is a directory", name)
+	}
+	gotTarget, err := filepath.EvalSymlinks(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	wantTarget, err := filepath.EvalSymlinks(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if gotTarget != wantTarget {
+		t.Fatalf("got target\n%q\nbut wanted\n%q\n", gotTarget, wantTarget)
 	}
 }

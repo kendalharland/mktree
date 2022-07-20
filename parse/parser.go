@@ -32,11 +32,13 @@ const (
 	// Keywords
 	DirTokenKind  TokenKind = "dir"
 	FileTokenKind TokenKind = "file"
+	LinkTokenKind TokenKind = "link"
 )
 
 var keywords = map[string]TokenKind{
 	"dir":  DirTokenKind,
 	"file": FileTokenKind,
+	"link": LinkTokenKind,
 }
 
 var EOF = &Token{EofTokenKind, "", -1}
@@ -157,7 +159,7 @@ func parseArg(p *Parser) *Arg {
 func parseLiteral(p *Parser) *Literal {
 	t := peekToken(p)
 	switch t.Kind {
-	case DirTokenKind, FileTokenKind, AttributeTokenKind, StringTokenKind, NumberTokenKind:
+	case DirTokenKind, FileTokenKind, LinkTokenKind, AttributeTokenKind, StringTokenKind, NumberTokenKind:
 		nextToken(p)
 		return &Literal{Token: t}
 	}
@@ -255,9 +257,10 @@ func nextToken(p *Parser) {
 
 func readAttribute(p *Parser) {
 	nextChar(p) // @
+	// TODO: Make this EOF check more automatic.
 	for !isEOF(p.r) {
 		c := peekChar(p.r)
-		if isWhiteSpace(c) || c == '\n' {
+		if !isAlpha(c) {
 			break
 		}
 		nextChar(p)
