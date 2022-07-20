@@ -10,7 +10,7 @@ PROJECTS := mktree docs
 TARGET := ./bin/mktree
 VERSION := $(shell cat VERSION)
 
-.PHONY: all bump-patch bump-minor bump-major clean docs docs-preview format release run test help
+.PHONY: all bump-patch bump-minor bump-major clean docs docs-preview release run test help
 
 all: $(PROJECTS)
 
@@ -27,26 +27,24 @@ bump-major:
 	go run ./cmd/release-tool bump-version -major VERSION
 
 clean:
-	@echo "==== Removing mktree ===="
+	@echo "==== Cleaning workspace ===="
 	rm -rf ./bin/*
 
 docs: mktree
 	@echo "=== Regenerating documentation ==="
 	tools/docs.sh -b
+	tools/build_examples.sh
 
-docs-preview: mktree
+docs-preview: docs
 	@echo "=== Serving documentation ==="
 	tools/docs.sh -s
 
-format: 
-	@echo "==== Formatting mktree source code ===="
-	gofmt -w .
-
-mktree: format clean
+mktree:
 	@echo "==== Building mktree ($(config)) ===="
+	gofmt -w .
 	go build -o $(TARGET) ./cmd/mktree
 
-release: mktree
+release: mktree docs
 	@echo "==== Building mktree ($(VERSION)) ===="
 	env GOOS=darwin GOARCH=amd64 go build -o bin/mktree-$(VERSION)-darwin-amd64 ./cmd/mktree
 	env GOOS=linux  GOARCH=amd64 go build -o bin/mktree-$(VERSION)-linux-amd64  ./cmd/mktree
@@ -56,7 +54,7 @@ run: mktree
 	@echo "==== Running mktree ($(config)) ===="
 	$(TARGET)
 
-test: mktree
+test:
 	@echo "==== Testing mktree (test) ===="
 	go test $(GO_TEST_FLAGS) ./...
 
